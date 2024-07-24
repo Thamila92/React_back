@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { useEffect, useState } from 'react';
 import getdate from "../../utils/getDate.js";
+import './mycalendar.css';
 import axios from 'axios';
 
 const MyCalendar = () => {
@@ -166,6 +167,22 @@ const MyCalendar = () => {
     fetchMissions();
   }, []);
 
+  const eventPropGetter = (event) => {
+    let className = '';
+
+    if (myMissionsList.some(e => e.title === event.title && e.start.getTime() === event.start.getTime())) {
+      className = 'entry-mission';
+    } else if (myEventsList.some(e => e.title === event.title && e.start.getTime() === event.start.getTime())) {
+      className = 'entry-event';
+    } else if (myStepsList.some(e => e.title === event.title && e.start.getTime() === event.start.getTime())) {
+      className = 'entry-step';
+    } else if (myProjetsList.some(e => e.title === event.title && e.start.getTime() === event.start.getTime())) {
+      className = 'entry-project';
+    }
+
+    return {className};
+  };
+
   return (
     <div className="home-content">
       <div className="today">
@@ -182,6 +199,7 @@ const MyCalendar = () => {
         startAccessor="start"
         endAccessor="end"
         style={{ height: 500 }}
+        eventPropGetter={eventPropGetter}
       />
     </div>
   );

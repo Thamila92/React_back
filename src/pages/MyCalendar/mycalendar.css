@@ -1,0 +1,23 @@
+.entry-mission {
+  background-color: blue;
+  border-color: red;
+  border-width: 2px;
+}
+
+.entry-event {
+  background-color: green;
+  border-color: red;
+  border-width: 2px;
+}
+
+.entry-step {
+  background-color: orange;
+  border-color: red;
+  border-width: 2px;
+}
+
+.entry-project {
+  background-color: purple;
+  border-color: red;
+  border-width: 2px;
+}

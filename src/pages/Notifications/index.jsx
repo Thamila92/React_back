@@ -45,7 +45,7 @@ const Notifications = () => {
     {notifications && notifications.map((notification)=>(
       <Notification_card key={notification.id} notification={notification}/>
     ))}
-  </div>
+    </div>
   )
 }
 

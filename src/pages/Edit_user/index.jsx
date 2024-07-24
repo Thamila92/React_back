@@ -19,6 +19,7 @@ const EditUser = () => {
     setName(localStorage.getItem('name') || "");
     setEmail(localStorage.getItem('email') || "");
     setId(localStorage.getItem('id') || "");
+    setStatus(localStorage.getItem('status') || "");
   }, []);
 
   const handleSubmit = (e) => {
@@ -69,8 +70,10 @@ const EditUser = () => {
         </div>
         <div>
           <table>
-            <tr><td style={{fontSize:"40px",color:"orange"}}>{localStorage.getItem('name')}</td></tr>
-            <tr><td>{localStorage.getItem('status')}</td></tr>
+            <tbody>
+              <tr key="name"><td style={{ fontSize: "40px", color: "orange" }}>{localStorage.getItem('name')}</td></tr>
+              <tr key="status"><td>{localStorage.getItem('status')}</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
@@ -101,7 +104,6 @@ const EditUser = () => {
               value={email}
               placeholder="Enter your email"
               onChange={(e) => setEmail(e.target.value)}
-
             />
           </div>
           <div className="inputGroup">
@@ -118,13 +120,13 @@ const EditUser = () => {
             />
           </div>
           <div className="inputGroup">
-            <label className="form-label mt-4" htmlFor="password" style={{color:"red"}}>Actual password</label>
+            <label className="form-label mt-4" htmlFor="actual_password" style={{ color: "red" }}>Actual password</label>
             <input
-              id="password"
-              aria-label="Enter Password"
+              id="actual_password"
+              aria-label="Enter Actual Password"
               className="form-control"
               type="password"
-              name="password"
+              name="actual_password"
               placeholder="Enter your actual password"
               value={actual_password}
               onChange={(e) => setApassword(e.target.value)}
