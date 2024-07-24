@@ -1,0 +1,26 @@
+.faq-section {
+    margin: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .faq-section h2 {
+    color: #333;
+  }
+  
+  .faq-section h3 {
+    color: #555;
+  }
+  
+  .faq-section h4 {
+    color: #666;
+  }
+  
+  .faq-section p,
+  .faq-section ul {
+    color: #777;
+  }
+  
+  .faq-section ul {
+    list-style-type: disc;
+    margin-left: 20px;
+  }

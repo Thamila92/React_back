@@ -31,6 +31,7 @@ import Planning from "./pages/Planning";
 import MyCalendar from "./pages/MyCalendar";
 import Notification from "./pages/Notifications";
 import Result from "./pages/Result";
+import Faq from './pages/Faq/index.jsx';
 
 
 const HeaderLayout = () => {
@@ -90,6 +91,7 @@ function App() {
             <Route path="/result" element={<Result/>}/>
             <Route path="/admin_membergestion" element={<Admin_membergestion/>}/>
             <Route path="/planning" element={<Planning/>}/>
+            <Route path="/faq" element={<Faq/>}/>
 {/* //             <Route path="/edit_user" element={<Edit_user/>}/> */}
             <Route path="/mycalendar" element={<MyCalendar/>}/>
 {/* //             <Route path="/notification" element={<Notification/>}/> */}
