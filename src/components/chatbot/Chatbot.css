@@ -1,0 +1,35 @@
+/* Ajustez la position du bouton pour afficher/masquer le chatbot */
+.toggle-chatbot-image {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    z-index: 1000;
+  }
+  
+  /* Conteneur du chatbot */
+  .chatbot-container {
+    position: fixed;
+    bottom: 100px; /* Ajustez cette valeur pour décaler le chatbot par rapport au bas de la page */
+    right: 20px;
+    width: 350px; /* Ajustez la largeur selon vos besoins */
+    max-height: 500px;
+    background-color: white;
+    border: 2px solid #f39713;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    overflow: hidden;
+  }
+  
+  /* Assurez-vous que le chatbot soit bien visible à l'intérieur du conteneur */
+  .chatbot-container .react-chatbot-kit-chat-container {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  

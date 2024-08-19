@@ -21,45 +21,57 @@ const MyCalendar = () => {
   // Structurer les événements reçus
   const getStructuredEvents = (events) => {
     return events.map(event => ({
-      title: `${event.typee} ${event.location[0]?.position || ''}`,
+      title: `${event.type} - ${event.description} ${event.location[0]?.position || ''}`,
       start: getTime(event.starting),
       end: getTime(event.ending),
       allDay: false,
-      resource: ""
+      resource: {
+        state: event.state,
+        type: event.type,
+        description: event.description,
+        location: event.location[0]?.position || '',
+        virtualLink: event.isVirtual ? event.virtualLink : null,
+      }
     }));
   };
 
-  //structurer les steps reçus
+  // Structurer les étapes (steps) reçues
   const getStructuredSteps = (steps) => {
     return steps.map(step => ({
       title: `${step.state} ${step.location?.[0]?.position || ''}`,
       start: getTime(step.starting),
       end: getTime(step.ending),
       allDay: false,
-      resource: ""
+      resource: {
+        state: step.state,
+        location: step.location?.[0]?.position || '',
+      }
     }));
   };
 
-   //structurer les missions reçus
-   const getStructuredMissions = (missions) => {
+  // Structurer les missions reçues
+  const getStructuredMissions = (missions) => {
     return missions.map(mission => ({
       title: `Mission: ${mission.description}`,
       start: getTime(mission.starting),
       end: getTime(mission.ending),
       allDay: false,
-      resource:""
+      resource: {
+        description: mission.description,
+      }
     }));
   };
 
-
-  //structurer les projets et leurs steps reçus
+  // Structurer les projets et leurs étapes (steps) reçus
   const getStructuredProjets = (projets) => {
     const structuredProjets = projets.map(projet => ({
       title: `Projet: ${projet.description}`,
       start: getTime(projet.starting),
       end: getTime(projet.ending),
       allDay: false,
-      resource: ""
+      resource: {
+        description: projet.description,
+      }
     }));
 
     const structuredSteps = projets.flatMap(projet =>
@@ -68,7 +80,10 @@ const MyCalendar = () => {
         start: getTime(step.starting),
         end: getTime(step.ending),
         allDay: false,
-        resource: ""
+        resource: {
+          state: step.state,
+          description: step.description,
+        }
       }))
     );
 
@@ -78,83 +93,54 @@ const MyCalendar = () => {
   // Fetch des événements depuis l'API
   const fetchEvents = async () => {
     try {
-      const config = {
-        method: 'get',
-        maxBodyLength: Infinity,
-        url: `${API_URL}/evenements`,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      };
-      const response = await axios.request(config);
-      console.log(response);
+      const response = await axios.get(`${API_URL}/evenements`, {
+        headers: { 'Content-Type': 'application/json' }
+      });
       const events = response.data.evenements;
       setMyEventsList(getStructuredEvents(events));
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching events:", error);
     }
   };
 
-  // Fetch des steps depuis l'API
+  // Fetch des étapes (steps) depuis l'API
   const fetchSteps = async () => {
     try {
-      const config = {
-        method: 'get',
-        maxBodyLength: Infinity,
-        url: `${API_URL}/steps`,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      };
-      const response = await axios.request(config);
-      console.log(response);
+      const response = await axios.get(`${API_URL}/steps`, {
+        headers: { 'Content-Type': 'application/json' }
+      });
       const steps = response.data.steps;
       setMyStepsList(getStructuredSteps(steps));
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching steps:", error);
     }
   };
 
-    // Fetch des projets depuis l'API
-    const fetchProjets = async () => {
-      try {
-        const config = {
-          method: 'get',
-          maxBodyLength: Infinity,
-          url: `${API_URL}/projets`,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        };
-        const response = await axios.request(config);
-        console.log(response);
-        const projets = response.data.projets;
-        setMyProjetsList(getStructuredProjets(projets));
-      } catch (error) {
-        console.log(error);
-      }
-    };
+  // Fetch des projets depuis l'API
+  const fetchProjets = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/projets`, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const projets = response.data.projets;
+      setMyProjetsList(getStructuredProjets(projets));
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
+  };
 
-    //Fetch des Missions depuis L'API
-    const fetchMissions = async () => {
-      try {
-        const config = {
-          method: 'get',
-          maxBodyLength: Infinity,
-          url: `${API_URL}/missions`,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        };
-        const response = await axios.request(config);
-        console.log("Missions Response:", response);
-        const missions = response.data.missions;
-        setMyMissionsList(getStructuredMissions(missions));
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
+  // Fetch des missions depuis l'API
+  const fetchMissions = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/missions`, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const missions = response.data.missions;
+      setMyMissionsList(getStructuredMissions(missions));
+    } catch (error) {
+      console.error("Error fetching missions:", error);
+    }
+  };
 
   useEffect(() => {
     setToday(getdate());
@@ -167,6 +153,7 @@ const MyCalendar = () => {
     fetchMissions();
   }, []);
 
+  // Personnalisation de l'apparence des événements
   const eventPropGetter = (event) => {
     let className = '';
 
@@ -180,7 +167,7 @@ const MyCalendar = () => {
       className = 'entry-project';
     }
 
-    return {className};
+    return { className };
   };
 
   return (
@@ -190,11 +177,11 @@ const MyCalendar = () => {
       </div>
       <Calendar
         localizer={localizer}
-        events={[...myEventsList,
+        events={[
+          ...myEventsList,
           ...myStepsList,
           ...myMissionsList,
           ...myProjetsList,
-          ...myEventsList
         ]}
         startAccessor="start"
         endAccessor="end"

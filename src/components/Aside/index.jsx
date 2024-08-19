@@ -22,7 +22,7 @@ const Aside = () => {
         <div className="aside-center"><img src="image/logo-doc.png" alt="doc" /></div>
       </NavLink>
 
-      <NavLink to="/" className={({ isActive }) => isActive ? "active" : ""}>
+      <NavLink to="/mycalendar" className={({ isActive }) => isActive ? "active" : ""}>
         <div className="aside-center"><img src="image/logo-calendar.png" alt="calendar" /></div>
       </NavLink>
 

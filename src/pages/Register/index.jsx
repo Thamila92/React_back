@@ -48,7 +48,7 @@ const SignUp = () => {
     let config = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `https://projet-annuel-q1r6.onrender.com/signup`,
+        url: `${API_URL}/signup`      ,
         headers: {
             'Content-Type': 'application/json'
         },

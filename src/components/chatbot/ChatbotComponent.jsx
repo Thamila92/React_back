@@ -5,6 +5,7 @@ import MessageParser from '../../chatbot/messageParser';
 import config from '../../chatbot/config';
 import ActionProvider from '../../chatbot/ActionProvider';
 import 'react-chatbot-kit/build/main.css';
+import './Chatbot.css';   
 
 const ChatbotComponent = () => {
   const [showChatbot, setShowChatbot] = useState(false);
@@ -16,7 +17,7 @@ const ChatbotComponent = () => {
   return (
     <div className="chatbot-wrapper">
       <img
-        src="src\components\chatbot\companionnChatBot.png"
+        src="src\components\chatbot\companionnChatBot.jpg"
         alt="Toggle Chatbot"
         className="toggle-chatbot-image"
         onClick={toggleChatbot}

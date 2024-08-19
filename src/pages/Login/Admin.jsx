@@ -1,15 +1,13 @@
-import { useEffect, useState } from "react"
-import "./signin.css"
-import logo from "/image/logo.png"
+import { useEffect, useState } from "react";
+import "./signin.css";
+import logo from "/image/logo.png";
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { toast } from "react-toastify";
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-// import api from '.../api';
 
 const LogInAdmin = () => {
 
-  const text="Companion"
+  const text = "Companion";
   const [displayedText, setDisplayedText] = useState('');
   const [index, setIndex] = useState(0);
 
@@ -25,140 +23,115 @@ const LogInAdmin = () => {
         setIndex(index + 1);
       }, 300); // Adjust delay here (in milliseconds)
     } else {
-      // Reset after completion
       timeout = setTimeout(() => {
         setDisplayedText('');
         setIndex(0);
-      }, 3000); // Delay before restarting (in milliseconds)
+      }, 3000);
     }
 
-    return () => clearTimeout(timeout); // Cleanup timeout on component unmount or before the next run
+    return () => clearTimeout(timeout);
   }, [index, text]);
 
-  const [email, setEmail]=useState("")
-
-  const [password, setPassword]=useState("")
-
-  const [key, setKey]=useState("")
-
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const VITE_URL_API = import.meta.env.VITE_URL_API;
-  // const LOCALHOST_API=import.meta.env.LOCALHOST_API;
-
   let navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    let data = { email, password }
+    let data = { email, password };
     data = JSON.stringify(data);
-
-    let config = {
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: `https://projet-annuel-q1r6.onrender.com/admin/login`,
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        data: data
-    };
-
-    axios.request(config)
-        .then((response) => {
-            if (response.status === 200) {
-                console.log(response.data);
-                console.log(response.data.token);
-                setEmail("");
-                setPassword("");
-                toast.success("Enregistré");
-                localStorage.setItem('token', response.data.token);
-                localStorage.setItem('status', response.data.admin.status.description);
-                localStorage.setItem('name', response.data.admin.name);
-                localStorage.setItem('id', response.data.admin.id);
-                setTimeout(() => {
-                    navigate("/home");
-                }, 3000);
-            }
-        })
-        .catch((error) => {
-            const errorMessage = error.response?.data?.message ||
-            'An error occurred';
-            toast.error(errorMessage);
+  
+    console.log("Sending request with data:", data);
+  
+    axios.post(`${VITE_URL_API}/login`, data, {
+      headers: { 'Content-Type': 'application/json' }
+    })
+    .then((response) => {
+      console.log("Login successful, API response:", response);
+  
+      if (response.status === 200) {
+        setEmail("");
+        setPassword("");
+        toast.success("Connecté avec succès");
+  
+        // Stocker les informations dans localStorage
+        localStorage.setItem('token', response.data.token);
+  
+        // Extraire les informations de l'utilisateur
+        const user = response.data.user;
+        localStorage.setItem('name', user.name);
+        localStorage.setItem('id', user.id);
+  
+        // Vérification du rôle de l'utilisateur via `status.type`
+        if (user.status && user.status.type === 'ADMIN') {
+          setTimeout(() => {
+            navigate("/admin_home");  // Redirection vers la page admin
+          }, 3000);
+        } else {
+          setTimeout(() => {
+            navigate("/home");  // Redirection vers la page standard
+          }, 3000);
         }
-        )
-}
+      }
+    })
+    .catch((error) => {
+      console.error("API error:", error);  // Log en cas d'erreur
+      const errorMessage = error.response?.data?.message || 'Une erreur s\'est produite';
+      toast.error(errorMessage);
+    });
+  };
+  
 
   return (
     <div className="container signin row">
       <div className="signin-left col">
-      <div className="title-signin">
-      {displayedText}
-      </div>
-      <div className="title-logo">
-        <img src={logo} alt="logo" />
-      </div>
+        <div className="title-signin">{displayedText}</div>
+        <div className="title-logo">
+          <img src={logo} alt="logo" />
+        </div>
       </div>
       <div className="signin-right col">
-      <h1 className="signin-right-title">Connexion</h1>
+        <h1 className="signin-right-title">Connexion</h1>
 
-      <form className="formGroup" onSubmit={handleSubmit}>
-                <div className="inputGroup">
-                    <label className="form-label mt-4" htmlFor="email">Email</label>
-                    <input
-                        id="email"
-                        aria-label="Enter Email"
-                        className="form-control"
-                        type="email"
-                        name="email"
-                        placeholder="Enter Email"
-                        onChange={(e) => {
-                            setEmail(e.target.value);
-                        }}
-                        required="required"
-                    />
-                </div>
-                <div className="inputGroup">
-                    <label className="form-label mt-4" htmlFor="password">Password</label>
-                    <input
-                        id="password"
-                        aria-label="Enter Password"
-                        className="form-control"
-                        type="password"
-                        name="password"
-                        placeholder="Enter Password"
-                        onChange={(e) => {
-                            setPassword(e.target.value);
-                        }}
-                        required="required"
-                    />
-                </div>
-                {/* <div className="inputGroup">
-                    <label className="form-label mt-4" htmlFor="password">Key</label>
-                    <input
-                        id="key"
-                        aria-label="Enter Status Key"
-                        className="form-control"
-                        type="password"
-                        name="key"
-                        placeholder="Enter Status Key"
-                        onChange={(e) => {
-                            setKey(e.target.value);
-                        }}
-                        required="required"
-                    />
-                </div> */}
-                <div className="form-footer">
-                    <input
-                        className="submitButton"
-                        type="submit"
-                        aria-label="Se connecter" />
-                </div><br></br>
-                <div className="form-footer2">
-                  <Link to="/admin/signUp">Create a new admin account</Link>
-                </div>
-            </form >
+        <form className="formGroup" onSubmit={handleSubmit}>
+          <div className="inputGroup">
+            <label className="form-label mt-4" htmlFor="email">Email</label>
+            <input
+              id="email"
+              aria-label="Enter Email"
+              className="form-control"
+              type="email"
+              name="email"
+              placeholder="Enter Email"
+              onChange={(e) => setEmail(e.target.value)}
+              required="required"
+            />
+          </div>
+          <div className="inputGroup">
+            <label className="form-label mt-4" htmlFor="password">Password</label>
+            <input
+              id="password"
+              aria-label="Enter Password"
+              className="form-control"
+              type="password"
+              name="password"
+              placeholder="Enter Password"
+              onChange={(e) => setPassword(e.target.value)}
+              required="required"
+            />
+          </div>
+          <div className="form-footer">
+            <input
+              className="submitButton"
+              type="submit"
+              aria-label="Se connecter" />
+          </div><br />
+        </form>
       </div>
     </div>
-  )
+  );
 }
 
-export default LogInAdmin
+export default LogInAdmin;

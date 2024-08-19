@@ -8,15 +8,15 @@ class MessageParser {
     console.log(message);
     const lowercase = message.toLowerCase();
 
-    if (lowercase.includes("hello")) {
+    if (lowercase.includes("hello") || lowercase.includes("bonjour")) {
       this.actionProvider.greet();
     }
 
-    if (lowercase.includes("présentation") || lowercase.includes("historique") || lowercase.includes("association")) {
+    if (lowercase.includes("présentation") || lowercase.includes("association") || lowercase.includes("aide aux personnes âgées")) {
       this.actionProvider.describeCompanion();
     }
 
-    if (lowercase.includes("missions") || lowercase.includes("fonctionnalités") || lowercase.includes("services")) {
+    if (lowercase.includes("services") || lowercase.includes("missions")) {
       this.actionProvider.listCompanionFunctionalities();
     }
 
@@ -28,8 +28,17 @@ class MessageParser {
       this.actionProvider.handleVoteAndConsultation();
     }
 
-    if (lowercase.includes("GED") || lowercase.includes("gestion documentaire") || lowercase.includes("stockage des documents")) {
+    if (lowercase.includes("gestion documentaire") || lowercase.includes("GED") || lowercase.includes("documents")) {
       this.actionProvider.handleGED();
+    }
+
+    // Nouveaux déclencheurs pour les services spécifiques
+    if (lowercase.includes("assistance") || lowercase.includes("vie quotidienne") || lowercase.includes("aide à domicile")) {
+      this.actionProvider.handleDailyLifeAssistance();
+    }
+
+    if (lowercase.includes("activités sociales") || lowercase.includes("animations") || lowercase.includes("rencontres")) {
+      this.actionProvider.handleSocialActivities();
     }
   }
 }

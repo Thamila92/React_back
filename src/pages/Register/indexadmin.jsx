@@ -45,7 +45,7 @@ const SignUpAdmin = () => {const text = "Companion";
     let config = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `https://projet-annuel-q1r6.onrender.com/admin/signup`,
+        url: `${API_URL}/signup`,
         headers: {
             'Content-Type': 'application/json'
         },

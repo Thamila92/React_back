@@ -2,7 +2,7 @@
 import { createChatBotMessage } from "react-chatbot-kit";
 
 const config = {
-  initialMessages: [createChatBotMessage("Hello! How can I help you?")],
+  initialMessages: [createChatBotMessage("Bonjour!Comment je peux vous aider?")],
   botName: "ChatBot",
   customStyles: {
     botMessageBox: {
