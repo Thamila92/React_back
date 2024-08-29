@@ -39,7 +39,7 @@ const LogIn = () => {
 
   const [password, setPassword]=useState("")
 
-  const API_URL = import.meta.env.VITE_URL_API;
+  const VITE_URL_API = import.meta.env.VITE_URL_API;
   // const LOCALHOST_API=import.meta.env.LOCALHOST_API;
 
   let navigate = useNavigate();
@@ -52,7 +52,7 @@ const LogIn = () => {
     let config = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `https://projet-annuel-q1r6.onrender.com/login`,
+        url:  `${VITE_URL_API}/login`,
         headers: {
             'Content-Type': 'application/json'
         },
@@ -70,7 +70,11 @@ const LogIn = () => {
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('status', response.data.other.status.description);
                 localStorage.setItem('name', response.data.other.name);
+                localStorage.setItem('email', response.data.other.email); // Ajoute cette ligne si ce n'est pas déjà fait
                 localStorage.setItem('id', response.data.other.id);
+                localStorage.setItem('dateDeNaissance', response.data.other.dateDeNaissance); // Ajoute cette ligne pour la date de naissance
+                localStorage.setItem('adresse', response.data.other.adresse); // Ajoute cette ligne pour l'adresse
+                
                 setTimeout(() => {
                     navigate("/home");
                 }, 3000);

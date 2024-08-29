@@ -1,244 +1,135 @@
-.today{
-  width: 96%;
-  height: 10vh;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  border: 1px solid black;
-  border-radius: 10px;
-  margin: 10px auto;
-  padding: 10px;
-}
-
-.today-text{
-  font-size: 24px;
-  font-weight: bold;
-  color:#F39713;
-  margin-block-start: 0em;
-  margin-block-end: 0em;
-}
-.past, .todo, .incoming{
-  width: 355px;
-  height: 826px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 5px;
-  border: 1px solid rgb(181, 180, 180);
-  border-radius: 10px;
-}
-
-.card-title{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 10px;
-  width: 327px;
-  height: 91px;
-  background-color: #F39713;
-  color: black;
-  border: 1px solid black;
-  border-radius: 10px;
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-p{
-  margin-block-start: 0em;
-  margin-block-end: 0em;
-}
-
-.activite{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 10px;
-  width: 327px;
-  height: 91px;
-  color: black;
-  border: 1px solid rgb(166, 166, 166);
-  border-radius: 10px;
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.mute{
-  border: 1px solid rgb(166, 166, 166);
-  background-color: rgb(242, 238, 238);
-}
-
-.tasks{
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 10px;
-  width: 306px;
-  height: 251px;
-  color: black;
-  border: 1px solid rgb(166, 166, 166);
-  border-radius: 10px;
-  font-size: 24px;
-  margin-bottom: 10px;
-  flex-direction: column;
-}
-.task-title p{
-  color:#F39713;
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.task-list{
-  padding: 5px;
-  border-top: 1px solid black;
-}
-
-.task-list ul{
-  margin-block-start: 0em;
-  margin-block-end: 0em;
-  margin-inline-start: 0px;
-  margin-inline-end: 0px;
-  padding-inline-start: 10px;
-  padding-left: 5px;
- list-style-type: none;
-}
-
-.task-list ul li{
-  margin: 0 5px;
-  width: 90%;
-}
-
-.task-item label{
-  padding-left: 20px;
-  width: 247px;
-  text-align: center;
-  width: 80%;
-  border-right: 1px solid rgb(166, 166, 166);
-}
-
-input[type=checkbox]{
-  margin-left: 10px;
-  width: 33px;
-  height: 26px;
-  border: 1px solid rgb(166, 166, 166);
-}
-
-.task-item{
-  width: 300px;
-  margin: 0 auto;
-}
-
-.home-body{
-  display:flex;
-  flex-wrap: nowrap;
-  justify-content: space-between;
-}
-
-/* home.css */
-
-.home-content {
+/* General form container styling */
+.event-form-container {
+  width: 100%;
+  max-width: 800px; /* Adjust the max width to fit the design */
+  margin: 20px auto;
   padding: 20px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+ 
+
+/* Input and select styling */
+.event-form-container input[type="text"],
+.event-form-container input[type="number"],
+.event-form-container input[type="datetime-local"],
+.event-form-container select {
+  width: calc(100% - 22px); /* Full width with padding adjustment */
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
 }
 
-.today {
-  font-size: 24px;
-  margin-bottom: 20px;
+.event-form-container input[type="text"]:focus,
+.event-form-container input[type="number"]:focus,
+.event-form-container input[type="datetime-local"]:focus,
+.event-form-container select:focus {
+  border-color: #f39713; /* Change border color on focus */
+  outline: none;
 }
 
-.today-text {
+/* Button styling */
+.event-form-container button {
+  background-color: #f39713;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 10px;
+}
+
+.event-form-container button:hover {
+  background-color: #e0860e; /* Darker shade on hover */
+}
+
+/* Label styling */
+.event-form-container label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
   color: #333;
 }
 
-.home-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative; /* Ensure relative positioning for child elements */
-}
-
-.chatbot-container {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 300px;
-  height: 400px;
-  z-index: 1000;
-}
-
-.toggle-chatbot-image {
-  width: 50px;
-  height: 50px;
-  cursor: pointer;
-}
-
-.home-content {
-  padding: 20px;
-}
-
-.today {
-  margin-bottom: 20px;
-}
-
-.today-text {
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.home-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.relative {
+/* Table Styling */
+.event-table-container table {
+  width: 100%;
+  border-collapse: collapse;
   margin-top: 20px;
 }
 
-.relative .overflow-x-auto {
-  width: 100%;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-table th,
-table td {
-  padding: 8px;
+.event-table-container th,
+.event-table-container td {
+  padding: 10px;
   text-align: left;
   border: 1px solid #ddd;
 }
 
-table th {
+.event-table-container th {
   background-color: #f2f2f2;
+  font-weight: bold;
 }
 
-.dark table th,
-.dark table td {
-  border-color: #444;
+.event-table-container tr:nth-child(even) {
+  background-color: #f9f9f9;
 }
 
-.VideoRoom {
-  border-radius: 5px;
-  margin: 5px;
-}
-
-
-.toggle-chatbot-image {
-  width: 50px; /* Adjust the size as needed */
-  height: 50px;
-  cursor: pointer;
-  position: fixed;
-  bottom: 20px; /* Adjust the distance from the bottom */
-  right: 20px; /* Adjust the distance from the right */
-  z-index: 1000; /* Ensure it appears above other elements */
-}
-
+/* Responsive chatbot container */
 .chatbot-container {
   width: 100%;
-  max-width: 600px;
+  max-width: 400px;
   position: fixed;
-  bottom: 80px; /* Adjust the distance to place it above the toggle image */
-  right: 20px; /* Align it with the toggle image */
-  z-index: 999; /* Ensure it appears above other elements but below the toggle image */
+  bottom: 80px;
+  right: 20px;
+  z-index: 999;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  padding: 10px;
+}
+
+/* Enhanced toggle image styling */
+.toggle-chatbot-image {
+  width: 60px; 
+  height: 60px;
+  cursor: pointer;
+  position: fixed;
+  bottom: 20px; 
+  right: 20px;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+}
+
+.toggle-chatbot-image:hover {
+  transform: scale(1.1); /* Slight zoom on hover */
+}
+
+/* For the whole page container */
+.home-content {
+  max-width: 1200px; /* Limit the width */
+  margin: auto; /* Center the container */
+  padding: 20px; /* Add padding for breathing space */
+  background-color: #fff; /* Background color for contrast */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Adjust Today section */
+.today {
+  width: 100%;
+  text-align: center;
+  margin: 20px 0;
+  padding: 15px;
+  border: none;
+  border-radius: 10px;
+  background-color: #f39713;
+  color: white;
 }

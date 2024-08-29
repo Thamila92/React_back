@@ -13,6 +13,8 @@ const LogInAdmin = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    console.log("Token in localStorage:", token); // Ajout du log pour voir si le token est présent
+
     if (token) {
       navigate("/home");
     }
@@ -43,15 +45,17 @@ const LogInAdmin = () => {
     let data = { email, password };
     data = JSON.stringify(data);
   
-    console.log("Sending request with data:", data);
-  
+    console.log("Sending request with data:", data); // Log avant l'envoi de la requête
+    console.log("VITE_URL_API:", VITE_URL_API); // Log pour vérifier l'URL de l'API
+
     axios.post(`${VITE_URL_API}/login`, data, {
       headers: { 'Content-Type': 'application/json' }
     })
     .then((response) => {
-      console.log("Login successful, API response:", response);
+      console.log("Login successful, API response:", response); // Log pour voir la réponse de l'API
   
       if (response.status === 200) {
+        console.log("Status 200 received"); // Log pour confirmer le statut 200
         setEmail("");
         setPassword("");
         toast.success("Connecté avec succès");
@@ -61,15 +65,18 @@ const LogInAdmin = () => {
   
         // Extraire les informations de l'utilisateur
         const user = response.data.user;
+        console.log("User data:", user); // Log pour voir les données de l'utilisateur
         localStorage.setItem('name', user.name);
         localStorage.setItem('id', user.id);
   
         // Vérification du rôle de l'utilisateur via `status.type`
         if (user.status && user.status.type === 'ADMIN') {
+          console.log("User is admin, redirecting to /admin_home"); // Log pour confirmer l'admin
           setTimeout(() => {
             navigate("/admin_home");  // Redirection vers la page admin
           }, 3000);
         } else {
+          console.log("User is not admin, redirecting to /home"); // Log pour confirmer l'utilisateur standard
           setTimeout(() => {
             navigate("/home");  // Redirection vers la page standard
           }, 3000);

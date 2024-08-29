@@ -1,0 +1,63 @@
+.folder-manager {
+    padding: 20px;
+  }
+  
+  .folder {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 2px solid #FFA500;
+    border-radius: 10px;
+    background-color: #f7f7f7;
+    transition: background-color 0.3s ease;
+  }
+  
+  .folder:hover {
+    background-color: #ffe0b2;
+  }
+  
+  .folder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .folder-header h3 {
+    margin-left: 10px;
+  }
+  
+  .folder-actions button {
+    margin-left: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #333;
+    transition: color 0.2s ease;
+  }
+  
+  .folder-actions button:hover {
+    color: #FFA500;
+  }
+  
+  .folder-files {
+    margin-top: 10px;
+  }
+  
+  .file-item {
+    margin-bottom: 5px;
+    padding: 5px;
+    border: 1px solid #aaa;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #fff;
+  }
+  
+  .create-folder {
+    margin-bottom: 20px;
+  }
+  
+  .folder-list, .file-list {
+    margin-top: 20px;
+  }
+  

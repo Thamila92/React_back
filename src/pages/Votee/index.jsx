@@ -1,187 +1,171 @@
-import React, { useState, useEffect } from "react";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import "./vote.css";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import './vote.css';
 
-const Votee = () => {
-  const [starting, setStarting] = useState("");
-  const [ending, setEnding] = useState("");
-  const [rounds, setRounds] = useState(1);
-  const [description, setDescription] = useState("");
-  const [votes, setVotes] = useState([]);
-  const [selectedVote, setSelectedVote] = useState(null);
-  const [roundDetails, setRoundDetails] = useState([]);
-  const [selectedChoices, setSelectedChoices] = useState({});
+const VotingSystem = () => {
+  const [voteSessions, setVoteSessions] = useState([]);
+  const [selectedSession, setSelectedSession] = useState(null);
+  const [voteChoice, setVoteChoice] = useState("");  // Pour stocker le choix de vote de l'utilisateur
+  const [resultats, setResultats] = useState(null);  // Pour stocker les résultats des votes
+  const [userId, setUserId] = useState(2);  // Id fictif pour le vote, à adapter selon ton contexte d'authentification
+
+  const VITE_URL_API = import.meta.env.VITE_URL_API;
 
   useEffect(() => {
-    let token = localStorage.getItem("token");
-    if (!token) {
-      Navigate("/");
-    }
-    const fetchVotes = async () => {
+    const fetchSessions = async () => {
       try {
-        const response = await axios.get("https://projet-annuel-q1r6.onrender.com/votes", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-
-        if (response.data && Array.isArray(response.data.votes)) {
-          setVotes(response.data.votes);
-        } else {
-          toast.error("Unexpected response format.");
-        }
+        const response = await axios.get(`${VITE_URL_API}/vote-sessions`);
+        setVoteSessions(response.data);
       } catch (error) {
-        toast.error("Failed to fetch votes. Please try again.");
+        toast.error("Failed to fetch vote sessions.");
       }
     };
 
-    fetchVotes();
+    fetchSessions();
   }, []);
 
-  const handleRegister = async () => {
-    const voteData = { starting, ending, rounds, description };
+  const handleSessionClick = (session) => {
+    setSelectedSession(session);
+    setResultats(null);
+  };
+  const handleVoteSubmit = async () => {
+    if (!voteChoice) {
+        toast.error("Please select a choice.");
+        return;
+    }
 
     try {
-      const response = await axios.post("https://projet-annuel-q1r6.onrender.com/vote", voteData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      localStorage.setItem('voteId', response.data.id);
-      toast.success("Vote created successfully!");
-    } catch (error) {
-      toast.error("Failed to create vote. Please try again.");
-    }
-  };
+        // Préparer les données à envoyer en fonction du type de session
+        const requestData = {
+            userId: userId,
+            sessionId: selectedSession.id,
+        };
 
-  const handleVoteClick = async (vote) => {
-    setSelectedVote(vote);
+        if (selectedSession.type === "sondage") {
+            requestData.optionId = voteChoice;  // Pour les sondages, utiliser optionId
+        } else {
+            requestData.choix = voteChoice;  // Pour les votes classiques, utiliser choix
+        }
+
+        // Envoyer la requête avec les données appropriées
+        const response = await axios.post(`${VITE_URL_API}/votes`, requestData);
+
+        toast.success("Vote submitted successfully!");
+        await fetchResults(selectedSession.id);
+    } catch (error) {
+        toast.error("Failed to submit vote.");
+        console.error("Error during vote submission:", error);
+    }
+};
+
+
+  const fetchResults = async (sessionId) => {
     try {
-      const roundsResponse = await axios.get(`https://projet-annuel-q1r6.onrender.com/rounds/${vote.id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-
-      const currentDate = new Date();
-      const filteredRounds = roundsResponse.data.filter(round => {
-        const startingDate = new Date(round.starting);
-        const endingDate = new Date(round.ending);
-        return currentDate >= startingDate && currentDate <= endingDate;
-      });
-
-      const roundsWithPropositions = await Promise.all(
-        filteredRounds.map(async (round) => {
-          const propositionsResponse = await axios.get(`https://projet-annuel-q1r6.onrender.com/propositions/${round.id}`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-          });
-          return { ...round, propositions: propositionsResponse.data };
-        })
-      );
-      setRoundDetails(roundsWithPropositions);
+      const response = await axios.get(`${VITE_URL_API}/vote-results/${sessionId}`);
+      setResultats(response.data);
     } catch (error) {
-      toast.error("Failed to fetch round details. Please try again.");
-    }
-  };
-
-  const handleChoiceChange = (roundId, value) => {
-    setSelectedChoices(prevState => ({
-      ...prevState,
-      [roundId]: value
-    }));
-  };
-
-  const handleSubmit = async (roundId) => {
-    const choice = selectedChoices[roundId];
-    if (!choice) {
-      toast.error("Please select a choice before submitting.");
-      return;
-    }
-    console.log(choice)
-    try {
-      await axios.post("https://projet-annuel-q1r6.onrender.com/choice", { roundId, choice }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      toast.success("Choice submitted successfully!");
-    } catch (error) {
-      toast.error("Failed to submit choice. Please try again.");
+      toast.error("Failed to fetch vote results.");
+      console.error("Error fetching vote results:", error);
     }
   };
 
   return (
-    <div className="vote-content">
+    <div className="vote-session-content">
       <ToastContainer />
-      <div className="today">
-        <p className="today-text">{new Date().toLocaleDateString()}</p>
-      </div>
-      <div className="vote-body">
-        <div className="vote-left">
-          <div className="vote">
-            <p>Votes</p>
+      <div className="vote-session-body">
+        <div className="vote-session-left">
+          <h2>Vote Sessions</h2>
+          <div className="session-list">
+            {voteSessions.map((session) => (
+              <div
+                className="session-item"
+                key={session.id}
+                onClick={() => handleSessionClick(session)}
+              >
+                {session.titre}
+              </div>
+            ))}
           </div>
-          {votes.length > 0 ? (
-            votes.map((vote, index) => (
-              <div className="round" key={index} onClick={() => handleVoteClick(vote)}>
-                {vote.description}
-              </div>
-            ))
-          ) : (
-            <p>Ici se chargeront les votes en cours</p>
-          )}
         </div>
-        <div className="vote-left">
-          <div style={{ marginTop: "30px", marginLeft: "10px", marginRight: "20px" }}>
-            <div className="information-title">
-              <p>Vote Information</p>
-            </div>
-            {selectedVote ? (
-              <ul>
-                <li>Description:</li>
-                <span style={{ color: "orange" }}>{selectedVote.description}</span><br />
-                <li>Starting:</li>
-                <span style={{ color: "orange" }}>{selectedVote.starting}</span><br />
-                <li>Ending:</li>
-                <span style={{ color: "orange" }}>{selectedVote.ending}</span><br />
-              </ul>
-            ) : (
-              <p>Aucune information de vote sélectionnée</p>
-            )}
-            <div className="vote-round">
-              <div className="round-title">
-                <p>Rounds Information</p>
-              </div>
-              {roundDetails.length > 0 ? (
-                roundDetails.map((round, index) => (
-                  <div className="round" key={index}>
-                    <p>Description: <span style={{ color: "orange" }}>{round.description}</span></p>
-                    <p>Starting: <span style={{ color: "orange" }}>{round.starting}</span></p>
-                    <p>Ending: <span style={{ color: "orange" }}>{round.ending}</span></p>
-                    <br />
-                    <hr />
-                    {round.propositions.map((proposition, idx) => (
-                      <div key={idx}>
-                        <p>Choice {idx + 1}: <span style={{ color: "orange" }}>{proposition.description}</span></p>
+
+        <div className="vote-session-right">
+          {selectedSession && (
+            <div>
+              <h2>Session Details</h2>
+              <p><strong>Title:</strong> {selectedSession.titre}</p>
+              <p><strong>Description:</strong> {selectedSession.description}</p>
+              <p><strong>Modalité:</strong> {selectedSession.modalite}</p>
+
+              <div>
+                <h3>Votez :</h3>
+                {selectedSession.type === "sondage" ? (
+                  selectedSession.options && selectedSession.options.length > 0 ? (
+                    // Afficher les options si c'est un sondage
+                    selectedSession.options.map(option => (
+                      <label key={option.id}>
                         <input
                           type="radio"
-                          name={`choice-${round.id}`}
-                          value={proposition.description}
-                          onChange={() => handleChoiceChange(round.id, proposition.description)}
+                          value={option.id}
+                          checked={voteChoice === String(option.id)}
+                          onChange={(e) => setVoteChoice(e.target.value)}
                         />
-                      </div>
-                    ))}
-                    <button
-                      style={{ color: "red", fontFamily: "fantasy", marginLeft: "40%" }}
-                      onClick={() => handleSubmit(round.id)}
-                    >
-                      Submit
-                    </button>
-                  </div>
-                ))
-              ) : (
-                <p>Ici se chargeront les informations des rounds</p>
+                        {option.titre}
+                      </label>
+                    ))
+                  ) : (
+                    <p>Aucune option disponible pour ce sondage.</p>
+                  )
+                ) : (
+                  <>
+                    <label>
+                      <input
+                        type="radio"
+                        value="pour"
+                        checked={voteChoice === "pour"}
+                        onChange={(e) => setVoteChoice(e.target.value)}
+                      />
+                      Pour
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        value="contre"
+                        checked={voteChoice === "contre"}
+                        onChange={(e) => setVoteChoice(e.target.value)}
+                      />
+                      Contre
+                    </label>
+                  </>
+                )}
+                <button onClick={handleVoteSubmit}>Submit Vote</button>
+              </div>
+
+              {resultats && (
+                <div className="resultats">
+                  <h3>Résultats du vote</h3>
+                  {selectedSession.type === "sondage" ? (
+                    selectedSession.options.map(option => (
+                      <p key={option.id}>
+                        <strong>{option.titre} :</strong> {resultats[option.id]} votes
+                      </p>
+                    ))
+                  ) : (
+                    <>
+                      <p><strong>Pour :</strong> {resultats.pourVotes}</p>
+                      <p><strong>Contre :</strong> {resultats.contreVotes}</p>
+                    </>
+                  )}
+                  <p><strong>Gagnant :</strong> {resultats.gagnant ? resultats.gagnant : 'Pas encore de gagnant'}</p>
+                </div>
               )}
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default Votee;
+export default VotingSystem;

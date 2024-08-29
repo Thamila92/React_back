@@ -1,181 +1,264 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./vote.css";
-import Round from "../../components/Round/index.jsx";
-import axios from "axios";
+import { useLocation } from "react-router-dom";
 
-const Vote = () => {
-  const [starting, setStarting] = useState("");
-  const [ending, setEnding] = useState("");
-  const [rounds, setRounds] = useState(1);
-  const [description, setDescription] = useState("");
-  const [votes, setVotes] = useState([]);
-  const [selectedVote, setSelectedVote] = useState(null);
-  const [roundDetails, setRoundDetails] = useState([]);
+const VoteSession = () => {
+  const [voteSessions, setVoteSessions] = useState([]);
+  const [selectedSession, setSelectedSession] = useState(null);
+  const [newVoteData, setNewVoteData] = useState({
+    titre: "",
+    description: "",
+    modalite: "",
+    type: "classique", // Par défaut "classique"
+    participants: [],
+    options: [], // Options pour les sondages
+    dateDebut: "",
+    dateFin: ""
+  });
+  const [users, setUsers] = useState([]); // Liste des utilisateurs récupérée du backend
+  const VITE_URL_API = import.meta.env.VITE_URL_API;
+
+  // Récupérer l'eventId des paramètres de l'URL
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const eventId = searchParams.get('eventId');
 
   useEffect(() => {
-    const fetchVotes = async () => {
+    const fetchSessions = async () => {
       try {
-        const response = await axios.get("https://projet-annuel-q1r6.onrender.com/votes", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        if (response.data && Array.isArray(response.data.votes)) {
-          setVotes(response.data.votes);
-        } else {
-          toast.error("Unexpected response format.");
-        }
+        const response = await axios.get(`${VITE_URL_API}/vote-sessions`);
+        setVoteSessions(response.data);
       } catch (error) {
-        toast.error("Failed to fetch votes. Please try again.");
+        toast.error("Failed to fetch vote sessions.");
       }
     };
 
-    fetchVotes();
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get(`${VITE_URL_API}/listUsers`);
+        const salarierUsers = response.data.users.filter(user => user.status.type === 'SALARIER');
+        setUsers(salarierUsers);
+      } catch (error) {
+        toast.error("Failed to fetch users.");
+      }
+    };
+
+    fetchSessions();
+    fetchUsers();
   }, []);
 
-  const handleRegister = async () => {
-    if (!starting || !ending || !rounds || !description) {
-      toast.error("Please fill all the fields.");
+  const handleCreateVoteSession = async () => {
+    const { titre, description, modalite, type, participants, options, dateDebut, dateFin } = newVoteData;
+
+    if (!titre || !description || !modalite || !type || !participants.length || !dateDebut || !dateFin) {
+      toast.error("Please fill all fields.");
       return;
     }
 
-    const voteData = { starting, ending, rounds, description };
+    if (type === 'sondage' && options.length < 2) {
+      toast.error("Please add at least two options for the survey.");
+      return;
+    }
+
+    const formattedDateDebut = new Date(dateDebut).toISOString();
+    const formattedDateFin = new Date(dateFin).toISOString();
+
+    // Construire les données à envoyer
+    const dataToSend = {
+      titre,
+      description,
+      modalite,
+      type,
+      participants: participants.map(id => Number(id)),
+      dateDebut: formattedDateDebut,
+      dateFin: formattedDateFin,
+    };
+
+    // Ajouter "options" uniquement si le type est "sondage"
+    if (type === 'sondage') {
+      dataToSend.options = options;
+    }
+
+    // Ajouter l'eventId si présent
+    if (eventId) {
+      dataToSend.evenementId = Number(eventId); // Assurer que c'est un nombre
+    }
 
     try {
-      const response = await axios.post("https://projet-annuel-q1r6.onrender.com/vote", voteData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      const response = await axios.post(`${VITE_URL_API}/vote-sessions`, dataToSend);
+      console.log("Réponse de l'API :", response.data);
+
+      toast.success("Vote session created successfully!");
+      setVoteSessions([...voteSessions, response.data]);
+      setNewVoteData({
+        titre: "",
+        description: "",
+        modalite: "",
+        type: "classique",
+        participants: [],
+        options: [],
+        dateDebut: "",
+        dateFin: ""
       });
-      localStorage.setItem('voteId', response.data.id);
-      toast.success("Vote created successfully!");
     } catch (error) {
-      toast.error("Failed to create vote. Please try again.");
+      console.error("Erreur lors de la création de la session de vote :", error);
+      toast.error("Failed to create vote session.");
     }
   };
 
-  const handleVoteClick = async (vote) => {
-    setSelectedVote(vote);
-    try {
-      const roundsResponse = await axios.get(`https://projet-annuel-q1r6.onrender.com/rounds/${vote.id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      const rounds = roundsResponse.data;
-      const roundsWithPropositions = await Promise.all(
-        rounds.map(async (round) => {
-          const propositionsResponse = await axios.get(`https://projet-annuel-q1r6.onrender.com/propositions/${round.id}`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-          });
-          return { ...round, propositions: propositionsResponse.data };
-        })
-      );
-      setRoundDetails(roundsWithPropositions);
-    } catch (error) {
-      toast.error("Failed to fetch round details. Please try again.");
-    }
+  const handleInputChange = (e) => {
+    setNewVoteData({ ...newVoteData, [e.target.name]: e.target.value });
+  };
+
+  const handleParticipantChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+    setNewVoteData({ ...newVoteData, participants: selectedOptions });
+  };
+
+  const handleOptionChange = (index, value) => {
+    const newOptions = [...newVoteData.options];
+    newOptions[index] = value;
+    setNewVoteData({ ...newVoteData, options: newOptions });
+  };
+
+  const addOption = () => {
+    setNewVoteData({ ...newVoteData, options: [...newVoteData.options, ""] });
+  };
+
+  const removeOption = (index) => {
+    const newOptions = newVoteData.options.filter((_, i) => i !== index);
+    setNewVoteData({ ...newVoteData, options: newOptions });
   };
 
   return (
-    <div className="vote-content">
+    <div className="vote-session-content">
       <ToastContainer />
-      <div className="today">
-        <p className="today-text">{new Date().toLocaleDateString()}</p>
-      </div>
-      <div className="vote-body">
-        <div className="vote-left">
-          <div className="vote">
-            <p>Votes</p>
-          </div>
-          {votes.map((vote, index) => (
-            <div className="round" key={index} onClick={() => handleVoteClick(vote)}>
-              {vote.description}
-            </div>
-          ))}
-        </div>
-        <div className="vote-right">
-          <div style={{ marginTop: "30px", marginLeft: "10px", marginRight: "20px" }}>
-            <div className="information-title">
-              <p>Vote Informations</p>
-            </div>
-            {selectedVote && (
-              <ul>
-                <li>Description:</li>
-                <span style={{ color: "orange" }}>{selectedVote.description}</span><br />
-                <li>Starting:</li>
-                <span style={{ color: "orange" }}>{selectedVote.starting}</span><br />
-                <li>Ending:</li>
-                <span style={{ color: "orange" }}>{selectedVote.ending}</span><br />
-                <li>No:</li>
-                <span style={{ color: "orange" }}>{selectedVote.id}</span><br />
-              </ul>
-            )}
-            <div className="vote-round">
-              <div className="round-title">
-                <p>Rounds Informations</p>
+      <div className="vote-session-body">
+        <div className="vote-session-left">
+          <h2>Vote Sessions</h2>
+          <div className="session-list">
+            {voteSessions.map((session) => (
+              <div
+                className="session-item"
+                key={session.id}
+                onClick={() => setSelectedSession(session)}
+              >
+                {session.titre}
               </div>
-              {roundDetails.map((round, index) => (
-                <div className="round" key={index}>
-                  <p>Description: <span style={{ color: "orange" }}>{round.description}</span></p>
-                  <p>Starting: <span style={{ color: "orange" }}>{round.starting}</span></p>
-                  <p>Ending: <span style={{ color: "orange" }}>{round.ending}</span></p>
-                  <br></br>
-                  <hr></hr>
-                  {round.propositions.map((proposition, index) => (
-                    <p key={index}><span style={{ color: "orange" }}>Choix {index + 1}:</span>{proposition.description}</p>
-                  ))}
+            ))}
+          </div>
+        </div>
+
+        <div className="create-session">
+          <h2>Create New Vote Session</h2>
+          <input
+            type="text"
+            name="titre"
+            value={newVoteData.titre}
+            placeholder="Title"
+            onChange={handleInputChange}
+          />
+          <textarea
+            name="description"
+            value={newVoteData.description}
+            placeholder="Description"
+            onChange={handleInputChange}
+          ></textarea>
+          <select
+            name="modalite"
+            value={newVoteData.modalite}
+            onChange={handleInputChange}
+          >
+            <option value="">Select Modalite</option>
+            <option value="majorité_absolue">Majorité Absolue</option>
+            <option value="majorité_relative">Majorité Relative</option>
+            <option value="un_tour">Un Tour</option>
+            <option value="deux_tours">Deux Tours</option>
+          </select>
+          <select
+            name="type"
+            value={newVoteData.type}
+            onChange={handleInputChange}
+          >
+            <option value="classique">Classique</option>
+            <option value="sondage">Sondage</option>
+          </select>
+
+          {newVoteData.type === 'sondage' && (
+            <div className="options-section">
+              <h3>Options du Sondage</h3>
+              {newVoteData.options.map((option, index) => (
+                <div key={index} className="option-item">
+                  <input
+                    type="text"
+                    placeholder={`Option ${index + 1}`}
+                    value={option}
+                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                  />
+                  <button onClick={() => removeOption(index)}>Remove</button>
                 </div>
               ))}
+              <button onClick={addOption}>Add Option</button>
             </div>
-          </div>
-          <div className="vote-informations">
-            <div className="information-title">
-              <p>New Vote</p>
-            </div>
-            <ul>
-              <li>Starting:</li>
-              <input
-                id="starting"
-                type="datetime-local"
-                name="starting"
-                placeholder="Enter Starting date and time"
-                onChange={(e) => setStarting(e.target.value)}
-                required
-              />
-              <li>Ending:</li>
-              <input
-                id="ending"
-                type="datetime-local"
-                placeholder="Enter Ending date and time"
-                name="ending"
-                onChange={(e) => setEnding(e.target.value)}
-                required
-              />
-              <li>Rounds:</li>
-              <input
-                id="rounds"
-                placeholder="Enter the number of rounds"
-                type="number"
-                name="number"
-                onChange={(e) => setRounds(e.target.value)}
-                required
-              />
-              <li>Description:</li>
-              <input
-                id="description"
-                placeholder="Enter description"
-                type="text"
-                name="description"
-                onChange={(e) => setDescription(e.target.value)}
-                required
-              />
-            </ul>
-            <div>
-              <button className="drop-btn" onClick={handleRegister}>Register</button>
-            </div>
-            <Round />
-          </div>
+          )}
+
+          {/* Sélection multiple pour les participants */}
+          <select
+            multiple
+            name="participants"
+            onChange={handleParticipantChange}
+            value={newVoteData.participants}
+            size="5"
+          >
+            {users.map(user => (
+              <option key={user.id} value={user.id}>{user.email}</option>
+            ))}
+          </select>
+          <input
+            type="datetime-local"
+            name="dateDebut"
+            value={newVoteData.dateDebut}
+            onChange={handleInputChange}
+          />
+          <input
+            type="datetime-local"
+            name="dateFin"
+            value={newVoteData.dateFin}
+            onChange={handleInputChange}
+          />
+          <button onClick={handleCreateVoteSession}>Create Session</button>
         </div>
       </div>
+
+      {selectedSession && (
+        <div className="session-details">
+          <h2>Session Details</h2>
+          <p><strong>Title:</strong> {selectedSession.titre}</p>
+          <p><strong>Description:</strong> {selectedSession.description}</p>
+          <p><strong>Type:</strong> {selectedSession.type}</p>
+          <p><strong>Rounds:</strong> {selectedSession.tourActuel}</p>
+          <p><strong>Start Date:</strong> {new Date(selectedSession.dateDebut).toLocaleString()}</p>
+          <p><strong>End Date:</strong> {new Date(selectedSession.dateFin).toLocaleString()}</p>
+          <p><strong>Modalité:</strong> {selectedSession.modalite}</p>
+          <p><strong>Participants:</strong> {selectedSession.participants.map(p => p.email).join(", ")}</p>
+
+          {selectedSession.type === 'sondage' && selectedSession.options && (
+            <div>
+              <h3>Options:</h3>
+              <ul>
+                {selectedSession.options.map((option, index) => (
+                  <li key={index}>{option.titre}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
 
-export default Vote;
+export default VoteSession;

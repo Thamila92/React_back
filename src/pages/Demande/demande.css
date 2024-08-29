@@ -1,0 +1,62 @@
+.demandes-container {
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+.demandes-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.demandes-table th, .demandes-table td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.demandes-table th {
+    background-color: #f2f2f2;
+    color: #333;
+}
+
+.demandes-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+.btn-validate, .btn-reject, .btn-delete {
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-validate {
+    background-color: #4CAF50;
+    color: white;
+    margin-right: 5px;
+}
+
+.btn-reject {
+    background-color: #f44336;
+    color: white;
+    margin-right: 5px;
+}
+
+.btn-delete {
+    background-color: #555;
+    color: white;
+}
+
+.btn-validate:hover {
+    background-color: #45a049;
+}
+
+.btn-reject:hover {
+    background-color: #e60000;
+}
+
+.btn-delete:hover {
+    background-color: #333;
+}

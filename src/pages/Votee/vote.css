@@ -1,180 +1,117 @@
-.vote-content {
+/* Styles généraux pour la mise en page */
+.vote-session-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100vh;
+  margin-top: 20px;
+  padding: 20px;
 }
 
-.today {
-  font-size: 24px;
-  font-weight: bold;
-  color: #f39713;
-}
-
-.today-text {
-  font-size: 24px;
-  font-weight: bold;
-  color: #f39713;
-}
-
-.vote-body {
+.vote-session-body {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   width: 100%;
+  max-width: 1200px;
+  margin-bottom: 30px;
 }
 
-.vote-left {
-  margin: 10px;
-  flex-direction: column;
-  display: flex;
-  padding-bottom: 10px;
-  align-items: center;
-  justify-content: flex-start;
-  width: 30%;
-  border: 1px solid rgb(196, 196, 196);
+/* Styles pour les sections à gauche et à droite */
+.vote-session-left,
+.vote-session-right {
+  flex: 1;
+  margin: 20px;
+  padding: 20px;
+  border: 1px solid #ccc;
   border-radius: 10px;
+  background-color: #f9f9f9;
 }
 
-.vote {
+/* Style pour la liste des sessions de vote */
+.session-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 366px;
-  height: 70px;
-  border: 1px solid black;
-  border-radius: 10px;
-  padding: 10px;
+  align-items: stretch;
+}
+
+.session-item {
   background-color: #f39713;
-  margin: 10px;
-}
-
-.round {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  border: 1px solid black;
+  padding: 15px;
+  margin-bottom: 10px;
   border-radius: 10px;
-  padding: 10px;
-  margin: 10px;
-}
-
-.vote-right {
-  display: flex;
-  flex-direction: row;
-  width: 70%;
-  border: 1px solid rgb(196, 196, 196);
-  border-radius: 10px;
-  padding: 10px;
-  margin: 10px;
-  box-sizing: border-box;
-}
-
-.vote-informations {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  width: 50%; /* Prend la moitié gauche */
-  box-sizing: border-box;
-  border: 1px solid rgb(196, 196, 196);
-  border-radius: 10px;
-  padding: 10px;
-}
-
-.information-title {
-  width: 100%;
-  font-weight: bold;
-  background-color: #f39713;
   text-align: center;
-  border: 1px solid black;
-  border-radius: 10px;
-  padding: 10px;
+  cursor: pointer;
+  font-size: 18px;
+  color: white;
+  transition: background-color 0.3s ease;
 }
 
-.vote-informations ul {
-  margin-block-start: 0em;
-  margin-block-end: 0em;
-  margin-inline-start: 0px;
-  margin-inline-end: 0px;
-  padding-inline-start: 10px;
-  padding-left: 5px;
-  list-style-type: none;
-  padding: 10px;
-  width: 290px;
+.session-item:hover {
+  background-color: #f1a12d;
 }
 
-.vote-informations ul li {
-  margin: 0 5px;
-  width: 90%;
+/* Style pour les détails de la session */
+.vote-session-right h2,
+.vote-session-left h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
-.vote-round {
-  width: 98%;
-  font-weight: bold;
-  border: 1px solid rgb(196, 196, 196);
-  border-radius: 10px;
-  padding: 10px;
+/* Style pour le formulaire de vote */
+.vote-session-right label {
+  margin-right: 20px;
+  font-size: 18px;
+}
+
+.vote-session-right button {
+  padding: 10px 20px;
+  background-color: #f39713;
+  border: none;
+  color: white;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
   margin-top: 20px;
 }
 
-.round {
-  width: 95%;
-  font-weight: bold;
-  border: 1px solid black;
+.vote-session-right button:hover {
+  background-color: #f1a12d;
+}
+
+/* Style pour les résultats du vote */
+.resultats {
+  margin-top: 30px;
+  padding: 20px;
+  border: 1px solid #ccc;
   border-radius: 10px;
-  padding: 10px;
-  display: inline-block
+  background-color: #f9f9f9;
 }
 
-
-.vote-right {
-  display: flex;
-  width: 100%;
-  height: 100%; /* Ensure it takes the full height */
-  box-sizing: border-box; /* Ensure padding and borders are included in the width */
-}
-
-.vote-right > div {
-  width: 50%;
-  box-sizing: border-box; /* Ensure padding is included in the width */
-}
-
-.information-title {
-  width: 100%;
-  font-weight: bold;
-  background-color: #f39713;
-  text-align: center;
-  border: 1px solid black;
-  border-radius: 10px;
-  padding: 10px;
-}
-
-.vote-informations {
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-  box-sizing: border-box; /* Ensure padding is included in the width */
-}
-
-.vote-informations ul {
-  list-style-type: none;
-  padding: 10px;
-  width: 100%;
-}
-
-.vote-informations ul li {
+.resultats p {
+  font-size: 18px;
   margin: 5px 0;
-  width: 100%;
 }
 
-.vote-round {
+/* Ajout de styles pour le texte */
+.vote-session-right p,
+.vote-session-left p {
+  font-size: 18px;
+  margin: 10px 0;
+}
+
+/* Style des boutons radio */
+input[type="radio"] {
+  margin-right: 10px;
+}
+
+/* Style des sélecteurs participants */
+select[name="participants"] {
   width: 100%;
-  font-weight: bold;
-  border: 1px solid rgb(196, 196, 196);
-  border-radius: 10px;
-  padding: 10px;
-  margin-top: 20px;
+  height: 100px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px;
+  font-size: 16px;
+  background-color: #fff;
 }

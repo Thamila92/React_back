@@ -158,7 +158,11 @@ const Home = () => {
     }
   };
   
-  
+  const handleCreateVote = (eventId) => {
+    // Redirige vers /admin-vote avec l'ID de l'événement
+    navigate(`/admin_vote?eventId=${eventId}`);
+  };
+
   const handleDelete = async (eventId) => {
     if (window.confirm("Are you sure you want to delete this event?")) {
       try {
@@ -377,6 +381,11 @@ const Home = () => {
                       <button onClick={() => handleDelete(event.id)}>
                         <FaTrash />
                       </button>
+                      {event.type === "AG" && (
+                        <button onClick={() => handleCreateVote(event.id)}>
+                          Créer un Vote
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

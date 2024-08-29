@@ -34,6 +34,7 @@ const Aside = () => {
         <NavLink to="/expenditure" className={({ isActive }) => isActive ? "active" : ""}>
           <div className="aside-center"><img src="image/logo-resources.png" alt="resources" /></div>
         </NavLink>
+        
       )}
 
       {status === 'BENEFACTOR' && (

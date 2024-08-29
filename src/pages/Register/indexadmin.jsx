@@ -45,7 +45,7 @@ const SignUpAdmin = () => {const text = "Companion";
     let config = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${API_URL}/signup`,
+        url: `${VITE_URL_API}/signup`,
         headers: {
             'Content-Type': 'application/json'
         },

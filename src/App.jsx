@@ -4,8 +4,8 @@ import { Outlet } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import Home from './pages/Home';
-import Vote from './pages/Vote';
-import Votee from './pages/Votee';
+import VoteSession from './pages/Vote';
+import VotingSystem from './pages/Votee';
 import Document from './pages/Document/index.jsx';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -24,14 +24,17 @@ import Payment from "./pages/Payment";
 import Admin_file from "./pages/Admin_file";
 import Admin_home from "./pages/Admin_home";
 import Donation from './pages/Donation/index.jsx';
-import EditUser from './pages/Edit_user/index.jsx';
+import Profile from './pages/Edit_user/index.jsx';
 import NotificationTable from './pages/Invitation/invitation.jsx';
 import Admin_membergestion from "./pages/Admin_membergestion";
 import Planning from "./pages/Planning";
 import MyCalendar from "./pages/MyCalendar";
 import Notification from "./pages/Notifications";
+import Demandes from "./pages/Demande/demande.tsx";
+
 import Result from "./pages/Result";
 import Faq from "./pages/Faq";
+import Users from "./pages/Users/users.tsx"
 
 
 const HeaderLayout = () => {
@@ -77,8 +80,8 @@ function App() {
 
             <Route path="/home" element={<Home />} />
 
-            <Route path="/admin_vote" element={<Vote />} />
-            <Route path="/vote" element={<Votee />} />
+            <Route path="/admin_vote" element={<VoteSession />} />
+            <Route path="/vote" element={<VotingSystem />} />
 
             <Route path="/payment" element={<Payment/>}/>
 
@@ -86,7 +89,7 @@ function App() {
             <Route path="/admin_file" element={<Admin_file/>}/>
 
 
-            <Route path="/edit_user" element={<EditUser/>}/>
+            <Route path="/edit_user" element={<Profile/>}/>
             <Route path="/faq" element={<Faq/>}/>
             <Route path="/notifications" element={<NotificationTable/>}/>
             <Route path="/home" element={<Home />} />
@@ -94,6 +97,10 @@ function App() {
             <Route path="/admin_membergestion" element={<Admin_membergestion/>}/>
             <Route path="/planning" element={<Planning/>}/>
             <Route path="/faq" element={<Faq/>}/>
+            <Route path="/users" element={<Users/>}/>
+            <Route path="/demandes" element={<Demandes/>}/>
+            
+            
 {/* //             <Route path="/edit_user" element={<Edit_user/>}/> */}
             <Route path="/mycalendar" element={<MyCalendar/>}/>
 {/* //             <Route path="/notification" element={<Notification/>}/> */}
