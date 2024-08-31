@@ -1,35 +1,79 @@
-/* Ajustez la position du bouton pour afficher/masquer le chatbot */
+/* Bouton pour afficher/masquer le chatbot */
 .toggle-chatbot-image {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 60px;
-    height: 60px;
-    cursor: pointer;
-    z-index: 1000;
-  }
-  
-  /* Conteneur du chatbot */
-  .chatbot-container {
-    position: fixed;
-    bottom: 100px; /* Ajustez cette valeur pour décaler le chatbot par rapport au bas de la page */
-    right: 20px;
-    width: 350px; /* Ajustez la largeur selon vos besoins */
-    max-height: 500px;
-    background-color: white;
-    border: 2px solid #f39713;
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    overflow: hidden;
-  }
-  
-  /* Assurez-vous que le chatbot soit bien visible à l'intérieur du conteneur */
-  .chatbot-container .react-chatbot-kit-chat-container {
-    height: 100%;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  z-index: 1000;
+  border-radius: 50%;
+  background-color: #f39713;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.toggle-chatbot-image:hover {
+  transform: scale(1.1);
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Conteneur du chatbot */
+.chatbot-container {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  width: 350px;
+  max-height: 500px;
+  background-color: white;
+  border: 2px solid #f39713;
+  border-radius: 15px;
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+/* Conteneur interne du chatbot */
+.chatbot-container .react-chatbot-kit-chat-container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #f7f7f7;
+  border-radius: 10px;
+}
+
+/* Messages du chatbot */
+.react-chatbot-kit-chat-bot-message {
+  background-color: #f39713;
+  color: white;
+  border-radius: 10px 10px 10px 0;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  max-width: 80%;
+}
+
+.react-chatbot-kit-chat-user-message {
+  background-color: #e0e0e0;
+  color: black;
+  border-radius: 10px 10px 0 10px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  align-self: flex-end;
+  max-width: 80%;
+}
+
+/* Bouton d'envoi de message */
+.react-chatbot-kit-chat-input-container button {
+  background-color: #f39713;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.react-chatbot-kit-chat-input-container button:hover {
+  background-color: #e08610;
+}

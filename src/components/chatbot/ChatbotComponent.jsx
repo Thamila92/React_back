@@ -17,7 +17,7 @@ const ChatbotComponent = () => {
   return (
     <div className="chatbot-wrapper">
       <img
-        src="src\components\chatbot\companionnChatBot.jpg"
+        src="image/logo-chatbot.png"
         alt="Toggle Chatbot"
         className="toggle-chatbot-image"
         onClick={toggleChatbot}

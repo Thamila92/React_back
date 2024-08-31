@@ -53,9 +53,20 @@ const Home = () => {
   });
 
   useEffect(() => {
+ 
     const token = localStorage.getItem('token');
+    const statusType = localStorage.getItem('statusType');
+    const userId = localStorage.getItem('userId');
+    const userName = localStorage.getItem('name');
+    const userEmail = localStorage.getItem('email');
+  
+    console.log("Token:", token);
+    console.log("Status Type:", statusType);
+    console.log("User ID:", userId);
+    console.log("User Name:", userName);
+    console.log("User Email:", userEmail);
     if (!token) {
-      navigate("/admin");
+      navigate("/");
       return;
     }
 

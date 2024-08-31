@@ -65,10 +65,36 @@ const Profile = () => {
 
             const updatedUser = await response.json();
             localStorage.setItem('user', JSON.stringify(updatedUser));
-            alert('Informations sauvegardées avec succès !');
+            
+            // Message de succès personnalisé
+            alert(`Bravo ${userData.name || 'utilisateur'}, vos informations ont été mises à jour avec succès !`);
         } catch (error) {
             console.error('Erreur:', error);
             alert('Erreur lors de la sauvegarde des informations.');
+        }
+    };
+
+    const handleDebanir = async () => {
+        try {
+            const userId = localStorage.getItem('id');
+            const VITE_URL_API = import.meta.env.VITE_URL_API;
+
+            const response = await fetch(`${VITE_URL_API}/debanir/${userId}`, {
+                method: 'PATCH', // Ou utilisez 'POST' ou 'DELETE' selon l'API
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Erreur lors de la tentative de débanissement.');
+            }
+
+            alert(`L'utilisateur ${userData.name} a été débanni avec succès.`);
+        } catch (error) {
+            console.error('Erreur:', error);
+            alert('Erreur lors de la tentative de débanissement.');
         }
     };
 
@@ -131,6 +157,7 @@ const Profile = () => {
                     </div>
                 </div>
                 <button onClick={handleSave} className="save-btn">Sauvegarder</button>
+                <button onClick={handleDebanir} className="debanir-btn">Débanir</button> {/* Bouton pour débanir */}
             </div>
         </div>
     );

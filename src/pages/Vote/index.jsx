@@ -4,6 +4,9 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./vote.css";
 import { useLocation } from "react-router-dom";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+
 
 const VoteSession = () => {
   const [voteSessions, setVoteSessions] = useState([]);
@@ -108,7 +111,9 @@ const VoteSession = () => {
       toast.error("Failed to create vote session.");
     }
   };
+ 
 
+  
   const handleInputChange = (e) => {
     setNewVoteData({ ...newVoteData, [e.target.name]: e.target.value });
   };

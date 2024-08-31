@@ -103,31 +103,9 @@ const MyCalendar = () => {
     }
   };
 
-  // Fetch des étapes (steps) depuis l'API
-  const fetchSteps = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/steps`, {
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const steps = response.data.steps;
-      setMyStepsList(getStructuredSteps(steps));
-    } catch (error) {
-      console.error("Error fetching steps:", error);
-    }
-  };
+ 
 
-  // Fetch des projets depuis l'API
-  const fetchProjets = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/projets`, {
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const projets = response.data.projets;
-      setMyProjetsList(getStructuredProjets(projets));
-    } catch (error) {
-      console.error("Error fetching projects:", error);
-    }
-  };
+ 
 
   // Fetch des missions depuis l'API
   const fetchMissions = async () => {
@@ -148,8 +126,7 @@ const MyCalendar = () => {
 
   useEffect(() => {
     fetchEvents();
-    fetchSteps();
-    fetchProjets();
+  
     fetchMissions();
   }, []);
 

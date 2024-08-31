@@ -10,11 +10,8 @@ import Document from './pages/Document/index.jsx';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import LogIn from './pages/Login/index.jsx';
-import LogInBenefactor from './pages/Login/Benefactor.jsx';
-import LogInAdmin from './pages/Login/Admin.jsx';
-import SignUp from './pages/Register/index.jsx';
-import SignUpBenefactor from './pages/Register/indexbenefactor.jsx';
-import SignUpAdmin from './pages/Register/indexadmin.jsx';
+ import SignUp from './pages/Register/index.jsx';
+ import SignUpAdmin from './pages/Register/indexadmin.jsx';
 import Aside from './components/Aside';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -29,9 +26,9 @@ import NotificationTable from './pages/Invitation/invitation.jsx';
 import Admin_membergestion from "./pages/Admin_membergestion";
 import Planning from "./pages/Planning";
 import MyCalendar from "./pages/MyCalendar";
-import Notification from "./pages/Notifications";
+import AdminDashboard from "./pages/AdminDashboard/AdminDashboard.tsx";
 import Demandes from "./pages/Demande/demande.tsx";
-
+import Missions from "./pages/Mission/mission.tsx";
 import Result from "./pages/Result";
 import Faq from "./pages/Faq";
 import Users from "./pages/Users/users.tsx"
@@ -64,12 +61,10 @@ function App() {
  
 
 
-          <Route path="/Benefactor" element={<LogInBenefactor />} />
-          <Route path="/Benefactor/SignUp" element={<SignUpBenefactor />} />
+ 
 
 
-          <Route path="/Admin" element={<LogInAdmin />} />
-          <Route path="/Admin/SignUp" element={<SignUpAdmin />} />
+           <Route path="/Admin/SignUp" element={<SignUpAdmin />} />
 
           <Route element={<HeaderLayout />}>
             <Route path="/Expenditure" element={<Expenditure />} />
@@ -99,7 +94,9 @@ function App() {
             <Route path="/faq" element={<Faq/>}/>
             <Route path="/users" element={<Users/>}/>
             <Route path="/demandes" element={<Demandes/>}/>
-            
+            <Route path="/missions" element={<Missions />} />  
+            <Route path="/dashboard" element={<AdminDashboard />} />  
+
             
 {/* //             <Route path="/edit_user" element={<Edit_user/>}/> */}
             <Route path="/mycalendar" element={<MyCalendar/>}/>

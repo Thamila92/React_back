@@ -1,0 +1,31 @@
+.missions-container {
+    padding: 20px;
+  }
+  
+  .missions-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .mission-item {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    position: relative;
+  }
+  
+  .mission-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .status-indicator {
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    border: none;
+    cursor: default;
+  }
+  

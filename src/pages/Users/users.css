@@ -28,4 +28,61 @@
   .ban-button:hover {
     color: darkred;
   }
+  .users-container {
+    margin: 20px;
+  }
+  
+  .add-user-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+  
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+  }
+  
+  .save-button, .cancel-button {
+    padding: 10px 15px;
+    margin-top: 10px;
+  }
+  
+  .save-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .cancel-button {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  .ban-button {
+    margin-right: 10px; /* Espace à droite du bouton Bannir */
+  }
+  
+  .delete-button {
+    margin-left: 10px; /* Espace à gauche du bouton Supprimer */
+  }
   

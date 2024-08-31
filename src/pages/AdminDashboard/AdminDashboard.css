@@ -1,0 +1,39 @@
+.admin-dashboard {
+    padding: 20px;
+    color: white;
+}
+
+.chart-section {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.chart-container {
+    width: 45%;
+}
+
+.details-container {
+    background-color: #2c2f3a;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.actions {
+    margin-top: 20px;
+}
+
+.actions button {
+    margin-right: 10px;
+    padding: 10px 20px;
+    background-color: #ff9800;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.actions button:hover {
+    background-color: #e68900;
+}
