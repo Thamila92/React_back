@@ -21,7 +21,7 @@ import Payment from "./pages/Payment";
 import Admin_file from "./pages/Admin_file";
 import Admin_home from "./pages/Admin_home";
 import Donation from './pages/Donation/index.jsx';
-import Profile from './pages/Edit_user/index.jsx';
+import UserProfile from './pages/Edit_user/index.jsx';
 import NotificationTable from './pages/Invitation/invitation.jsx';
 import Admin_membergestion from "./pages/Admin_membergestion";
 import Planning from "./pages/Planning";
@@ -84,7 +84,7 @@ function App() {
             <Route path="/admin_file" element={<Admin_file/>}/>
 
 
-            <Route path="/edit_user" element={<Profile/>}/>
+            <Route path="/edit_user" element={<UserProfile/>}/>
             <Route path="/faq" element={<Faq/>}/>
             <Route path="/notifications" element={<NotificationTable/>}/>
             <Route path="/home" element={<Home />} />

@@ -17,13 +17,15 @@
   margin-bottom: 20px;
 }
 
-.profile-action-btn {
-  padding: 10px 20px;
-  background-color: #FFA500;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+.profile-link {
+  display: block;
+  color: #FFA500;
+  text-decoration: none;
+  margin-top: 10px;
+}
+
+.profile-link:hover {
+  text-decoration: underline;
 }
 
 .profile-content {
@@ -49,7 +51,7 @@
   margin: 10px 0 5px;
 }
 
-input {
+input, select {
   width: 100%;
   padding: 10px;
   margin-bottom: 15px;
@@ -72,7 +74,7 @@ input {
 
 .save-btn {
   padding: 15px 30px;
-  background-color: #FFA500;
+  background-color: #FFA500; 
   color: white;
   border: none;
   border-radius: 5px;

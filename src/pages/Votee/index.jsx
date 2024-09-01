@@ -7,9 +7,10 @@ import './vote.css';
 const VotingSystem = () => {
   const [voteSessions, setVoteSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
-  const [voteChoice, setVoteChoice] = useState("");  // Pour stocker le choix de vote de l'utilisateur
-  const [resultats, setResultats] = useState(null);  // Pour stocker les résultats des votes
-  const [userId, setUserId] = useState(2);  // Id fictif pour le vote, à adapter selon ton contexte d'authentification
+  const [voteChoice, setVoteChoice] = useState('');
+  const [resultats, setResultats] = useState(null);
+  const [hasVoted, setHasVoted] = useState(false);
+  const userId = localStorage.getItem('userId');
 
   const VITE_URL_API = import.meta.env.VITE_URL_API;
 
@@ -26,40 +27,48 @@ const VotingSystem = () => {
     fetchSessions();
   }, []);
 
-  const handleSessionClick = (session) => {
+  const handleSessionClick = async (session) => {
     setSelectedSession(session);
     setResultats(null);
-  };
-  const handleVoteSubmit = async () => {
-    if (!voteChoice) {
-        toast.error("Please select a choice.");
-        return;
-    }
+    setVoteChoice('');
+    setHasVoted(false);
 
     try {
-        // Préparer les données à envoyer en fonction du type de session
-        const requestData = {
-            userId: userId,
-            sessionId: selectedSession.id,
-        };
-
-        if (selectedSession.type === "sondage") {
-            requestData.optionId = voteChoice;  // Pour les sondages, utiliser optionId
-        } else {
-            requestData.choix = voteChoice;  // Pour les votes classiques, utiliser choix
-        }
-
-        // Envoyer la requête avec les données appropriées
-        const response = await axios.post(`${VITE_URL_API}/votes`, requestData);
-
-        toast.success("Vote submitted successfully!");
-        await fetchResults(selectedSession.id);
+      const response = await axios.get(`${VITE_URL_API}/votes/hasVoted`, {
+        params: { userId, sessionId: session.id }
+      });
+      if (response.data.hasVoted) {
+        setHasVoted(true);
+        toast.info("You have already voted in this session.");
+        fetchResults(session.id);
+      }
     } catch (error) {
-        toast.error("Failed to submit vote.");
-        console.error("Error during vote submission:", error);
+      toast.error("Failed to check if user has voted.");
     }
-};
+  };
 
+  const handleVoteSubmit = async () => {
+    if (!voteChoice) {
+      toast.error("Please select a choice.");
+      return;
+    }
+  
+    try {
+      const requestData = selectedSession.type === "sondage" ?
+        { userId, sessionId: selectedSession.id, optionId: parseInt(voteChoice) } :
+        { userId, sessionId: selectedSession.id, choix: voteChoice };
+  
+      const response = await axios.post(`${VITE_URL_API}/votes`, requestData);
+      if (response.status === 201) {
+        toast.success("Vote submitted successfully!");
+        fetchResults(selectedSession.id);
+        setHasVoted(true); // Set the state to indicate the user has voted
+      }
+    } catch (error) {
+      toast.error("Failed to submit vote.");
+      console.error("Error during vote submission:", error.response ? error.response.data : error.message);
+    }
+  };
 
   const fetchResults = async (sessionId) => {
     try {
@@ -100,66 +109,68 @@ const VotingSystem = () => {
 
               <div>
                 <h3>Votez :</h3>
-                {selectedSession.type === "sondage" ? (
-                  selectedSession.options && selectedSession.options.length > 0 ? (
-                    // Afficher les options si c'est un sondage
-                    selectedSession.options.map(option => (
-                      <label key={option.id}>
-                        <input
-                          type="radio"
-                          value={option.id}
-                          checked={voteChoice === String(option.id)}
-                          onChange={(e) => setVoteChoice(e.target.value)}
-                        />
-                        {option.titre}
-                      </label>
-                    ))
-                  ) : (
-                    <p>Aucune option disponible pour ce sondage.</p>
-                  )
+                {hasVoted ? (
+                  <p>You have already voted.</p>
                 ) : (
                   <>
-                    <label>
-                      <input
-                        type="radio"
-                        value="pour"
-                        checked={voteChoice === "pour"}
-                        onChange={(e) => setVoteChoice(e.target.value)}
-                      />
-                      Pour
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        value="contre"
-                        checked={voteChoice === "contre"}
-                        onChange={(e) => setVoteChoice(e.target.value)}
-                      />
-                      Contre
-                    </label>
+                    {selectedSession.options && selectedSession.options.length > 0 ? (
+                      selectedSession.options.map(option => (
+                        <label key={option.id}>
+                          <input
+                            type="radio"
+                            value={option.id}
+                            checked={voteChoice === String(option.id)}
+                            onChange={(e) => setVoteChoice(e.target.value)}
+                          />
+                          {option.titre}
+                        </label>
+                      ))
+                    ) : (
+                      <>
+                        <label>
+                          <input
+                            type="radio"
+                            value="pour"
+                            checked={voteChoice === "pour"}
+                            onChange={(e) => setVoteChoice(e.target.value)}
+                          />
+                          Pour
+                        </label>
+                        <label>
+                          <input
+                            type="radio"
+                            value="contre"
+                            checked={voteChoice === "contre"}
+                            onChange={(e) => setVoteChoice(e.target.value)}
+                          />
+                          Contre
+                        </label>
+                      </>
+                    )}
+                    <button onClick={handleVoteSubmit} disabled={hasVoted}>Submit Vote</button>
                   </>
                 )}
-                <button onClick={handleVoteSubmit}>Submit Vote</button>
               </div>
 
               {resultats && (
-                <div className="resultats">
-                  <h3>Résultats du vote</h3>
-                  {selectedSession.type === "sondage" ? (
-                    selectedSession.options.map(option => (
-                      <p key={option.id}>
-                        <strong>{option.titre} :</strong> {resultats[option.id]} votes
-                      </p>
-                    ))
-                  ) : (
-                    <>
-                      <p><strong>Pour :</strong> {resultats.pourVotes}</p>
-                      <p><strong>Contre :</strong> {resultats.contreVotes}</p>
-                    </>
-                  )}
-                  <p><strong>Gagnant :</strong> {resultats.gagnant ? resultats.gagnant : 'Pas encore de gagnant'}</p>
-                </div>
+            <div className="resultats">
+              <h3>Résultats du vote</h3>
+              {selectedSession.type === "sondage" ? (
+                selectedSession.options.map(option => (
+                  <p key={option.id}>
+                    <strong>{option.titre} :</strong> {resultats.pourcentage[option.id].votes} votes ({resultats.pourcentage[option.id].pourcentage}%)
+                  </p>
+                ))
+              ) : (
+                <>
+                  <p><strong>Pour :</strong> {resultats.pourcentage.pour.votes} ({resultats.pourcentage.pour.pourcentage}%)</p>
+                  <p><strong>Contre :</strong> {resultats.pourcentage.contre.votes} ({resultats.pourcentage.contre.pourcentage}%)</p>
+                </>
               )}
+              <p><strong>Gagnant :</strong> {resultats.gagnant}</p>
+            </div>
+          )}
+
             </div>
           )}
         </div>

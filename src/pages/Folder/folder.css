@@ -41,7 +41,10 @@
   .folder-files {
     margin-top: 10px;
   }
-  
+  .folder-over {
+    background-color: #f0f0f0;
+    border: 2px dashed #999;
+  }
   .file-item {
     margin-bottom: 5px;
     padding: 5px;

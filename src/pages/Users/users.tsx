@@ -3,11 +3,12 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import "./users.css";
 
+// Définir une interface pour les utilisateurs
 interface User {
   id: number;
   name: string;
   email: string;
-  dateDeNaissance?: string;
+  dateDeNaissance?: string; // dateDeNaissance peut être null ou non défini
   isBanned: boolean;
   status: {
     id: number;
@@ -17,9 +18,9 @@ interface User {
 
 const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [statuses, setStatuses] = useState<{ id: number; type: string }[]>([]);
+  const [statuses, setStatuses] = useState<{ id: number; type: string }[]>([]); // Pour stocker les types de statuts disponibles
   const [showModal, setShowModal] = useState(false);
-  const [editUser, setEditUser] = useState<User | null>(null);
+  const [editUser, setEditUser] = useState<User | null>(null); // Pour l'utilisateur en cours d'édition
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
@@ -43,7 +44,7 @@ const Users = () => {
       });
 
     axios
-      .get(`${VITE_URL_API}/statuses`)
+      .get(`${VITE_URL_API}/statuses`) // Endpoint pour obtenir tous les statuts
       .then((response) => {
         setStatuses(response.data);
       })
@@ -86,12 +87,7 @@ const Users = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (editUser) {
-      if (name === "status") {
-        const selectedStatus = statuses.find((status) => status.id === parseInt(value));
-        setEditUser({ ...editUser, status: selectedStatus! });
-      } else {
-        setEditUser({ ...editUser, [name]: value });
-      }
+      setEditUser({ ...editUser, [name]: value });
     } else {
       setNewUser({ ...newUser, [name]: value });
     }
@@ -121,8 +117,8 @@ const Users = () => {
   };
 
   const handleDoubleClick = (user: User) => {
-    setEditUser(user);
-    setShowModal(true);
+    setEditUser(user); // Mettre l'utilisateur en mode édition
+    setShowModal(true); // Afficher le modal d'édition
   };
 
   const handleUpdateUser = () => {
@@ -132,7 +128,7 @@ const Users = () => {
       axios
         .patch(`${VITE_URL_API}/updateUser/${editUser.id}`, {
           ...userToUpdate,
-          statusId: status.id,
+          statusId: status.id, // Envoie de l'ID du statut à mettre à jour
         })
         .then((response) => {
           toast.success("Utilisateur mis à jour avec succès");
@@ -142,7 +138,7 @@ const Users = () => {
             )
           );
           setShowModal(false);
-          setEditUser(null);
+          setEditUser(null); // Réinitialiser l'utilisateur en mode édition
         })
         .catch((error) => {
           console.error("Error updating user:", error);
