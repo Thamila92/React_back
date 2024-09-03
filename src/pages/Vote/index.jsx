@@ -67,11 +67,18 @@ const VoteSession = () => {
   const handleCreateVoteSession = async () => {
     const { titre, description, modalite, type, participants, options, dateDebut, dateFin } = newVoteData;
 
-    // Vérification que les dates sont avant aujourd'hui
-    if (new Date(dateDebut) >= new Date() || new Date(dateFin) >= new Date()) {
-      toast.error("Les dates de début et de fin doivent être avant aujourd'hui.");
+
+    if (new Date(dateDebut) < new Date() || new Date(dateFin) < new Date()) {
+      toast.error("Les dates de début et de fin doivent être après aujourd'hui.");
       return;
     }
+ 
+
+    if (new Date(dateFin) <= new Date(dateDebut)) {
+      toast.error("La date de fin doit être après la date de début.");
+      return;
+    }
+
 
     if (!titre || !description || !modalite || !type || !participants.length || !dateDebut || !dateFin) {
       toast.error("Please fill all fields.");
