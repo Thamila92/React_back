@@ -32,7 +32,7 @@ import Missions from "./pages/Mission/mission.tsx";
 import Result from "./pages/Result";
 import Faq from "./pages/Faq";
 import Users from "./pages/Users/users.tsx"
-
+import FolderExplorer from "./pages/Folder/index"
 
 const HeaderLayout = () => {
   return (
@@ -96,6 +96,7 @@ function App() {
             <Route path="/demandes" element={<Demandes/>}/>
             <Route path="/missions" element={<Missions />} />  
             <Route path="/dashboard" element={<AdminDashboard />} />  
+            <Route path="/folder" element={<FolderExplorer />} />  
 
             
 {/* //             <Route path="/edit_user" element={<Edit_user/>}/> */}

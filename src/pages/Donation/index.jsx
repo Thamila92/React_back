@@ -14,6 +14,7 @@ const Donation = () => {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [expenses, setExpenses] = useState([]);
+  const VITE_URL_API = import.meta.env.VITE_URL_API;
 
   // const fetchExpenditures = async () => {
   //   let token = localStorage.getItem('token');
@@ -82,7 +83,7 @@ const Donation = () => {
     let data = { description, amount };
 
     try {
-      const response = await axios.post('http://localhost:3000/donation', data, {
+      const response = await axios.post(`${VITE_URL_API}/ddonation`, data, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,

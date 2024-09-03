@@ -179,11 +179,6 @@ const Users = () => {
 };
 
 
-
-
-
-
-
 return (
   <div className="users-container">
     <h1>Liste des utilisateurs</h1>

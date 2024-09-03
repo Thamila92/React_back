@@ -307,7 +307,7 @@ const Document = () => {
             <div>
         <h2>Documents</h2>
      
-        <FolderManager />
+        
       </div>
           </div>
 
