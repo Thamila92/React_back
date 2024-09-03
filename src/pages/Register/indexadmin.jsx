@@ -45,7 +45,7 @@ const SignUpAdmin = () => {const text = "Companion";
     let config = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${VITE_URL_API}/signup`,
+        url: `${VITE_URL_API}/admin/signup`,
         headers: {
             'Content-Type': 'application/json'
         },
@@ -61,7 +61,7 @@ const SignUpAdmin = () => {const text = "Companion";
                 setPassword("");
                 toast.success("Connecté");
                 setTimeout(() => {
-                    navigate("/admin");
+                    navigate("/");
                 }, 3000);
             }
         })

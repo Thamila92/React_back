@@ -22,11 +22,7 @@ const Header = () => {
         </div> */}
       </div>
       <div className="header-right">
-        <div className="bell">
-        <NavLink to="/notifications" className={({ isActive }) => isActive ? "active" : ""}>
-          <img src="image/logo-bell.png" alt="" />
-          </NavLink>
-        </div>
+        
         <div className="profile">
           <img src="image/logo-avatar.png" alt="" />
           <NavLink to="/edit_user" className={({ isActive }) => isActive ? "active" : ""}>

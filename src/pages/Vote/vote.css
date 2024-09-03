@@ -98,3 +98,50 @@ h2 {
   font-size: 18px;
   margin: 5px 0;
 }
+.session-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.edit-button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.edit-button:hover {
+  text-decoration: underline;
+}
+
+
+.delete-icon {
+  margin-left: 10px;
+  cursor: pointer;
+  color: #dc3545;
+}
+.header-and-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header-title {
+  flex-grow: 1;
+}
+
+.navigate-button {
+  background-color: #FF8800; /* Use the orange theme color */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.navigate-button:hover {
+  background-color: #FF6600; /* Darker shade for hover effect */
+}

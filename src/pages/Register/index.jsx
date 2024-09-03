@@ -48,7 +48,7 @@ const SignUp = () => {
     let config = {
         method: 'post',
         maxBodyLength: Infinity,
-        url: `${API_URL}/signup`      ,
+        url: `${API_URL}/salarier/signup`      ,
         headers: {
             'Content-Type': 'application/json'
         },

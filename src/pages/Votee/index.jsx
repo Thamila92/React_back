@@ -10,7 +10,7 @@ const VotingSystem = () => {
   const [voteChoice, setVoteChoice] = useState('');
   const [resultats, setResultats] = useState(null);
   const [hasVoted, setHasVoted] = useState(false);
-  const userId = localStorage.getItem('userId');
+  const userId = Number(localStorage.getItem('userId')); // Convertir userId en nombre
 
   const VITE_URL_API = import.meta.env.VITE_URL_API;
 
@@ -18,14 +18,30 @@ const VotingSystem = () => {
     const fetchSessions = async () => {
       try {
         const response = await axios.get(`${VITE_URL_API}/vote-sessions`);
-        setVoteSessions(response.data);
+        const allSessions = response.data;
+    
+        // Filtrer les sessions où l'utilisateur actuel est un participant
+        const filteredSessions = allSessions.filter(session => 
+          session.participants.some(participant => 
+            participant.id === userId && 
+            (participant.status.type === 'SALARIER' || participant.status.type === 'ADMIN')
+          )
+        );
+    
+        if (filteredSessions.length === 0) {
+          toast.info("Vous n'avez pas encore de session de vote.");
+        }
+    
+        setVoteSessions(filteredSessions);
       } catch (error) {
         toast.error("Failed to fetch vote sessions.");
+        console.error("Error fetching vote sessions:", error);
       }
     };
+    
 
     fetchSessions();
-  }, []);
+  }, [userId, VITE_URL_API]);
 
   const handleSessionClick = async (session) => {
     setSelectedSession(session);
@@ -62,7 +78,7 @@ const VotingSystem = () => {
       if (response.status === 201) {
         toast.success("Vote submitted successfully!");
         fetchResults(selectedSession.id);
-        setHasVoted(true); // Set the state to indicate the user has voted
+        setHasVoted(true); // Indique que l'utilisateur a voté
       }
     } catch (error) {
       toast.error("Failed to submit vote.");
@@ -87,15 +103,19 @@ const VotingSystem = () => {
         <div className="vote-session-left">
           <h2>Vote Sessions</h2>
           <div className="session-list">
-            {voteSessions.map((session) => (
-              <div
-                className="session-item"
-                key={session.id}
-                onClick={() => handleSessionClick(session)}
-              >
-                {session.titre}
-              </div>
-            ))}
+            {voteSessions.length > 0 ? (
+              voteSessions.map((session) => (
+                <div
+                  className="session-item"
+                  key={session.id}
+                  onClick={() => handleSessionClick(session)}
+                >
+                  {session.titre}
+                </div>
+              ))
+            ) : (
+              <p>Vous n'avez pas encore de session de vote.</p>
+            )}
           </div>
         </div>
 
@@ -153,24 +173,23 @@ const VotingSystem = () => {
               </div>
 
               {resultats && (
-            <div className="resultats">
-              <h3>Résultats du vote</h3>
-              {selectedSession.type === "sondage" ? (
-                selectedSession.options.map(option => (
-                  <p key={option.id}>
-                    <strong>{option.titre} :</strong> {resultats.pourcentage[option.id].votes} votes ({resultats.pourcentage[option.id].pourcentage}%)
-                  </p>
-                ))
-              ) : (
-                <>
-                  <p><strong>Pour :</strong> {resultats.pourcentage.pour.votes} ({resultats.pourcentage.pour.pourcentage}%)</p>
-                  <p><strong>Contre :</strong> {resultats.pourcentage.contre.votes} ({resultats.pourcentage.contre.pourcentage}%)</p>
-                </>
+                <div className="resultats">
+                  <h3>Résultats du vote</h3>
+                  {selectedSession.type === "sondage" ? (
+                    selectedSession.options.map(option => (
+                      <p key={option.id}>
+                        <strong>{option.titre} :</strong> {resultats.pourcentage[option.id].votes} votes ({resultats.pourcentage[option.id].pourcentage}%)
+                      </p>
+                    ))
+                  ) : (
+                    <>
+                      <p><strong>Pour :</strong> {resultats.pourcentage.pour.votes} ({resultats.pourcentage.pour.pourcentage}%)</p>
+                      <p><strong>Contre :</strong> {resultats.pourcentage.contre.votes} ({resultats.pourcentage.contre.pourcentage}%)</p>
+                    </>
+                  )}
+                  <p><strong>Gagnant :</strong> {resultats.gagnant}</p>
+                </div>
               )}
-              <p><strong>Gagnant :</strong> {resultats.gagnant}</p>
-            </div>
-          )}
-
             </div>
           )}
         </div>

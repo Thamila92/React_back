@@ -8,13 +8,20 @@ interface User {
   id: number;
   name: string;
   email: string;
-  dateDeNaissance?: string; // dateDeNaissance peut être null ou non défini
+  dateDeNaissance?: string; // Peut être null ou non défini
+  adresse?: string;
   isBanned: boolean;
   status: {
     id: number;
     type: string;
   };
+  // Propriétés non modifiables directement
+  createdAt?: string;
+  isAvailable?: boolean;
+  isDeleted?: boolean;
+  skills?: any[]; // Ou un autre type si vous avez une définition précise
 }
+
 
 const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -120,163 +127,207 @@ const Users = () => {
     setEditUser(user); // Mettre l'utilisateur en mode édition
     setShowModal(true); // Afficher le modal d'édition
   };
-
   const handleUpdateUser = () => {
     if (editUser) {
-      const { status, ...userToUpdate } = editUser;
+        const { id, status, createdAt, isAvailable, isBanned, isDeleted, skills, ...userToUpdate } = editUser;
 
-      axios
-        .patch(`${VITE_URL_API}/updateUser/${editUser.id}`, {
-          ...userToUpdate,
-          statusId: status.id, // Envoie de l'ID du statut à mettre à jour
-        })
-        .then((response) => {
-          toast.success("Utilisateur mis à jour avec succès");
-          setUsers((prevUsers) =>
-            prevUsers.map((user) =>
-              user.id === editUser.id ? response.data : user
-            )
-          );
-          setShowModal(false);
-          setEditUser(null); // Réinitialiser l'utilisateur en mode édition
-        })
-        .catch((error) => {
-          console.error("Error updating user:", error);
-          toast.error("Erreur lors de la mise à jour de l'utilisateur.");
-        });
+        // Conservez une référence à l'utilisateur original
+        const originalUser = users.find(user => user.id === id);
+
+        // Tracer l'utilisateur avant la modification
+        console.log("Original User:", originalUser);
+
+        // Filtrer les champs non modifiables et les retirer de userToUpdate
+        const updatedFields: Partial<User> & { statusId?: number } = {};
+
+        // Comparer les champs et ne prendre que les champs modifiés
+        for (const key in userToUpdate) {
+            if (originalUser && userToUpdate[key] !== originalUser[key as keyof User]) {
+                console.log(`Field changed: ${key} - Old: ${originalUser[key as keyof User]}, New: ${userToUpdate[key]}`);
+                updatedFields[key as keyof User] = userToUpdate[key];
+            }
+        }
+
+        // Vérifiez si le statut a changé
+        if (status && originalUser && status.id !== originalUser.status.id) {
+            console.log(`Status changed: Old: ${originalUser.status.id}, New: ${status.id}`);
+            updatedFields.statusId = status.id;
+        }
+
+        if (Object.keys(updatedFields).length === 0) {
+            toast.info("No changes made.");
+            return;
+        }
+
+        axios
+            .patch(`${VITE_URL_API}/updateUser/${id}`, updatedFields)
+            .then((response) => {
+                toast.success("Utilisateur mis à jour avec succès");
+                setUsers((prevUsers) =>
+                    prevUsers.map((user) =>
+                        user.id === id ? response.data : user
+                    )
+                );
+                setShowModal(false);
+                setEditUser(null); // Réinitialiser l'utilisateur en mode édition
+            })
+            .catch((error) => {
+                console.error("Error updating user:", error);
+                toast.error("Erreur lors de la mise à jour de l'utilisateur.");
+            });
     }
-  };
+};
 
-  return (
-    <div className="users-container">
-      <h1>Liste des utilisateurs</h1>
-      <button className="add-user-button" onClick={() => setShowModal(true)}>
-        + Ajouter un utilisateur
-      </button>
-      <table className="users-table">
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>Email</th>
-            <th>Date de naissance</th>
-            <th>Statut</th>
-            <th>Action</th>
+
+
+
+
+
+
+return (
+  <div className="users-container">
+    <h1>Liste des utilisateurs</h1>
+    <button className="add-user-button" onClick={() => setShowModal(true)}>
+      + Ajouter un utilisateur
+    </button>
+    <table className="users-table">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Email</th>
+          <th>Date de naissance</th>
+          <th>Statut</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {users.map((user) => (
+          <tr key={user.id} onDoubleClick={() => handleDoubleClick(user)}>
+            <td>{user.name}</td>
+            <td>{user.email}</td>
+            <td>
+              {user.dateDeNaissance
+                ? new Date(user.dateDeNaissance).toLocaleDateString()
+                : "N/A"}
+            </td>
+            <td>{user.status?.type || "N/A"}</td>
+            <td>
+              <button className="ban-button" onClick={() => handleBanUser(user.id)}>
+                {user.isBanned ? "Débannir" : "Bannir"}
+              </button>
+              <button className="delete-button" onClick={() => handleDeleteUser(user.id)}>
+                🗑️
+              </button>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id} onDoubleClick={() => handleDoubleClick(user)}>
-              <td>{user.name}</td>
-              <td>{user.email}</td>
-              <td>
-                {user.dateDeNaissance
-                  ? new Date(user.dateDeNaissance).toLocaleDateString()
-                  : "N/A"}
-              </td>
-              <td>{user.status?.type || "N/A"}</td>
-              <td>
-                <button className="ban-button" onClick={() => handleBanUser(user.id)}>
-                  {user.isBanned ? "Débannir" : "Bannir"}
-                </button>
-                <button className="delete-button" onClick={() => handleDeleteUser(user.id)}>
-                  🗑️
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        ))}
+      </tbody>
+    </table>
 
-      {showModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>{editUser ? "Modifier l'utilisateur" : "Ajouter un utilisateur"}</h2>
-            <label>
-              Nom:
-              <input
-                type="text"
-                name="name"
-                value={editUser ? editUser.name : newUser.name}
-                onChange={handleInputChange}
-                required
-              />
-            </label>
-            <label>
-              Email:
-              <input
-                type="email"
-                name="email"
-                value={editUser ? editUser.email : newUser.email}
-                onChange={handleInputChange}
-                required
-              />
-            </label>
-            {editUser && (
+    {showModal && (
+      <div className="modal">
+        <div className="modal-content">
+          <h2>{editUser ? "Modifier l'utilisateur" : "Ajouter un utilisateur"}</h2>
+          <label>
+            Nom:
+            <input
+              type="text"
+              name="name"
+              value={editUser ? editUser.name : newUser.name}
+              onChange={handleInputChange}
+              required
+            />
+          </label>
+          <label>
+            Email:
+            <input
+              type="email"
+              name="email"
+              value={editUser ? editUser.email : newUser.email}
+              onChange={handleInputChange}
+              required
+            />
+          </label>
+          {editUser && (
+            <>
               <label>
-                Statut:
-                <select name="status" value={editUser.status.id} onChange={handleInputChange}>
+              Statut:
+              <select 
+                  name="status" 
+                  value={editUser?.status?.id} 
+                  onChange={(e) => {
+                      const selectedStatus = statuses.find(s => s.id === Number(e.target.value));
+                      if (selectedStatus) {
+                          setEditUser({ ...editUser, status: selectedStatus });
+                      }
+                  }}
+              >
                   {statuses.map((status) => (
-                    <option key={status.id} value={status.id}>
-                      {status.type}
-                    </option>
+                      <option key={status.id} value={status.id}>
+                          {status.type}
+                      </option>
                   ))}
+              </select>
+            </label>
+
+              {/* Ajoutez ici d'autres champs spécifiques à l'édition si nécessaire */}
+            </>
+          )}
+          {!editUser && (
+            <>
+              <label>
+                Mot de passe:
+                <input
+                  type="password"
+                  name="password"
+                  value={newUser.password}
+                  onChange={handleInputChange}
+                  required
+                />
+              </label>
+              <label>
+                Adresse:
+                <input
+                  type="text"
+                  name="adresse"
+                  value={newUser.adresse}
+                  onChange={handleInputChange}
+                />
+              </label>
+              <label>
+                Date de naissance:
+                <input
+                  type="date"
+                  name="dateDeNaissance"
+                  value={newUser.dateDeNaissance}
+                  onChange={handleInputChange}
+                />
+              </label>
+              <label>
+                Rôle:
+                <select name="role" value={newUser.role} onChange={handleInputChange}>
+                  <option value="adherent">Adhérent</option>
+                  <option value="salarier">Salarié</option>
+                  <option value="admin">Admin</option>
                 </select>
               </label>
-            )}
-            {!editUser && (
-              <>
-                <label>
-                  Mot de passe:
-                  <input
-                    type="password"
-                    name="password"
-                    value={newUser.password}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </label>
-                <label>
-                  Adresse:
-                  <input
-                    type="text"
-                    name="adresse"
-                    value={newUser.adresse}
-                    onChange={handleInputChange}
-                  />
-                </label>
-                <label>
-                  Date de naissance:
-                  <input
-                    type="date"
-                    name="dateDeNaissance"
-                    value={newUser.dateDeNaissance}
-                    onChange={handleInputChange}
-                  />
-                </label>
-                <label>
-                  Rôle:
-                  <select name="role" value={newUser.role} onChange={handleInputChange}>
-                    <option value="adherent">Adhérent</option>
-                    <option value="salarier">Salarié</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </label>
-              </>
-            )}
-            <button
-              className="save-button"
-              onClick={editUser ? handleUpdateUser : handleAddUser}
-            >
-              {editUser ? "Mettre à jour" : "Ajouter"}
-            </button>
-            <button className="cancel-button" onClick={() => setShowModal(false)}>
-              Annuler
-            </button>
-          </div>
+            </>
+          )}
+          <button
+            className="save-button"
+            onClick={editUser ? handleUpdateUser : handleAddUser}
+          >
+            {editUser ? "Mettre à jour" : "Ajouter"}
+          </button>
+          <button className="cancel-button" onClick={() => setShowModal(false)}>
+            Annuler
+          </button>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
+
 };
 
 export default Users;

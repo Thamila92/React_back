@@ -22,6 +22,8 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showEventForm, setShowEventForm] = useState(false);  // Pour afficher/cacher le formulaire
+  const [editingEventId, setEditingEventId] = useState(null); // ID de l'événement en cours d'édition
+  const [editedEventData, setEditedEventData] = useState({}); // Données de l'événement en cours d'édition
   const navigate = useNavigate();
 
   const VITE_URL_API = import.meta.env.VITE_URL_API;
@@ -53,18 +55,12 @@ const Home = () => {
   });
 
   useEffect(() => {
- 
     const token = localStorage.getItem('token');
     const statusType = localStorage.getItem('statusType');
     const userId = localStorage.getItem('userId');
     const userName = localStorage.getItem('name');
     const userEmail = localStorage.getItem('email');
-  
-    console.log("Token:", token);
-    console.log("Status Type:", statusType);
-    console.log("User ID:", userId);
-    console.log("User Name:", userName);
-    console.log("User Email:", userEmail);
+
     if (!token) {
       navigate("/");
       return;
@@ -73,7 +69,7 @@ const Home = () => {
     const fetchInitialData = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch Events
         const eventResponse = await axios.get(`${VITE_URL_API}/evenements`, {
           headers: {
@@ -91,7 +87,6 @@ const Home = () => {
         setUsers(userResponse.data.users);
       } catch (error) {
         setError("Failed to fetch data");
-        console.error("Error fetching data:", error);
         toast.error("Failed to load data");
       } finally {
         setLoading(false);
@@ -107,6 +102,47 @@ const Home = () => {
     setShowChatbot(prevShowChatbot => !prevShowChatbot);
   };
 
+  const handleDoubleClick = (event) => {
+    setEditingEventId(event.id);
+    setEditedEventData({ ...event }); // Prendre une copie des données de l'événement
+  };
+
+  const handleSaveEdit = async (eventId) => {
+    try {
+      // Créez un objet avec uniquement les champs modifiés
+      const updatedFields = {};
+      for (const key in editedEventData) {
+        if (editedEventData[key] !== events.find(event => event.id === eventId)[key]) {
+          updatedFields[key] = editedEventData[key];
+        }
+      }
+
+      if (Object.keys(updatedFields).length === 0) {
+        toast.info("No changes made.");
+        setEditingEventId(null);
+        return;
+      }
+
+      const response = await axios.patch(`${VITE_URL_API}/evenements/${eventId}`, updatedFields, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      // Mettre à jour l'état des événements avec les données modifiées
+      setEvents(events.map(event => (event.id === eventId ? response.data : event)));
+      toast.success("Event updated successfully!");
+      setEditingEventId(null);
+    } catch (error) {
+      console.error("Error updating event:", error);
+      toast.error("Failed to update event.");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEventId(null);
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEventData(prevData => ({
@@ -117,28 +153,22 @@ const Home = () => {
 
   const handleSubmit = async () => {
     try {
-      // Préparer les données à envoyer
-      const preparedEventData = {
-        ...eventData,
-      };
-  
-      // Supprimer le champ 'state' si l'API ne l'attend pas ou si ce n'est pas nécessaire
+      const preparedEventData = { ...eventData };
+
       delete preparedEventData.state;
-  
-      // Supprimer d'autres champs inutiles si ce n'est pas un événement de type 'AG'
+
       if (preparedEventData.type !== "AG") {
         delete preparedEventData.repetitivity;
         delete preparedEventData.quorum;
       }
-  
-      // Envoi de la requête à l'API
+
       const response = await axios.post(`${VITE_URL_API}/evenements`, preparedEventData, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
       });
-  
+
       toast.success("Event created successfully!");
       setEventData({
         type: "",
@@ -155,22 +185,14 @@ const Home = () => {
         currentParticipants: 0,
         membersOnly: false,
       });
+      setEvents([...events, response.data]);
     } catch (error) {
       console.error("Error creating event:", error);
-  
-      if (error.response) {
-        console.error("Response data:", error.response.data);
-        console.error("Response status:", error.response.status);
-        toast.error(`Error: ${error.response.data?.message || "Bad Request"}`);
-      } else {
-        console.error("Error without response:", error);
-        toast.error("Failed to create event. Please try again.");
-      }
+      toast.error("Failed to create event. Please try again.");
     }
   };
-  
+
   const handleCreateVote = (eventId) => {
-    // Redirige vers /admin-vote avec l'ID de l'événement
     navigate(`/admin_vote?eventId=${eventId}`);
   };
 
@@ -255,18 +277,17 @@ const Home = () => {
                 <label>
                   Type:
                   <select
-                  name="type"
-                  value={eventData.type}
-                  onChange={handleInputChange}
-                >
-                  <option value="">Select type</option>
-                  {eventTypes.map((eventType, index) => (
-                    <option key={index} value={eventType.value}>
-                      {eventType.label}
-                    </option>
-                  ))}
-                </select>
-
+                    name="type"
+                    value={eventData.type}
+                    onChange={handleInputChange}
+                  >
+                    <option value="">Select type</option>
+                    {eventTypes.map((eventType, index) => (
+                      <option key={index} value={eventType.value}>
+                        {eventType.label}
+                      </option>
+                    ))}
+                  </select>
                 </label>
                 <label>
                   Repetitivity:
@@ -281,8 +302,6 @@ const Home = () => {
                     <option value="NONE">None</option>
                   </select>
                 </label>
-
-                {/* Ajout des nouveaux champs */}
                 <label>
                   Max Participants:
                   <input
@@ -381,21 +400,65 @@ const Home = () => {
               </thead>
               <tbody>
                 {events.map((event, index) => (
-                  <tr key={index}>
-                    <td>{event.description}</td>
-                    <td>{event.type}</td>
-                    <td>{event.quorum}</td>
+                  <tr key={index} onDoubleClick={() => handleDoubleClick(event)}>
+                    <td>
+                      {editingEventId === event.id ? (
+                        <input
+                          type="text"
+                          value={editedEventData.description || ""}
+                          onChange={(e) => setEditedEventData({ ...editedEventData, description: e.target.value })}
+                        />
+                      ) : (
+                        event.description
+                      )}
+                    </td>
+                    <td>
+                      {editingEventId === event.id ? (
+                        <select
+                          value={editedEventData.type || ""}
+                          onChange={(e) => setEditedEventData({ ...editedEventData, type: e.target.value })}
+                        >
+                          {eventTypes.map((type) => (
+                            <option key={type.value} value={type.value}>
+                              {type.label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        event.type
+                      )}
+                    </td>
+                    <td>
+                      {editingEventId === event.id ? (
+                        <input
+                          type="number"
+                          value={editedEventData.quorum || ""}
+                          onChange={(e) => setEditedEventData({ ...editedEventData, quorum: e.target.value })}
+                        />
+                      ) : (
+                        event.quorum
+                      )}
+                    </td>
                     <td>{new Date(event.starting).toLocaleString()}</td>
                     <td>{new Date(event.ending).toLocaleString()}</td>
                     <td>{event.repetitivity}</td>
                     <td>
-                      <button onClick={() => handleDelete(event.id)}>
-                        <FaTrash />
-                      </button>
-                      {event.type === "AG" && (
-                        <button onClick={() => handleCreateVote(event.id)}>
-                          Créer un Vote
-                        </button>
+                      {editingEventId === event.id ? (
+                        <>
+                          <button onClick={() => handleSaveEdit(event.id)}>Save</button>
+                          <button onClick={handleCancelEdit}>Cancel</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => handleDelete(event.id)}>
+                            <FaTrash />
+                          </button>
+                          {event.type === "AG" && (
+                            <button onClick={() => handleCreateVote(event.id)}>
+                              Créer un Vote
+                            </button>
+                          )}
+                        </>
                       )}
                     </td>
                   </tr>

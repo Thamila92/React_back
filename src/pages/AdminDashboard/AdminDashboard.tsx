@@ -1,111 +1,227 @@
 import React, { useState, useEffect } from "react";
 import { Bar, Doughnut } from "react-chartjs-2";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
+import { 
+  Chart as ChartJS, 
+  ArcElement,
+  CategoryScale, 
+  LinearScale, 
+  BarElement, 
+  Title, 
+  Tooltip, 
+  Legend 
+} from 'chart.js';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./AdminDashboard.css";
 
-ChartJS.register(ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
+ChartJS.register(
+  ArcElement,
+  CategoryScale, 
+  LinearScale, 
+  BarElement, 
+  Title, 
+  Tooltip, 
+  Legend
+);
+
+interface DashboardData {
+  totalRevenue: number;
+  totalDonations: number;
+  totalCotisations: number;
+}
+
+interface Paiement {
+  id: number;
+  stripePaymentId: string;
+  amount: number;
+  currency: string;
+  status: string;
+  date: string;
+}
+
+interface Cotisation {
+  id: number;
+  description: string;
+  category: string;
+  email: string;
+  date: string;
+  expirationDate: string;
+  paiement: Paiement;
+}
+
+interface Donation {
+  id: number;
+  nom: string;
+  prenom: string;
+  email: string;
+  date: string;
+  paiement: Paiement;
+}
 
 const AdminDashboard: React.FC = () => {
-    const [dashboardData, setDashboardData] = useState<any>(null);
+    const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+    const [cotisations, setCotisations] = useState<Cotisation[]>([]);
+    const [donations, setDonations] = useState<Donation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [startDate, setStartDate] = useState<string>(new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0]);
+    const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const VITE_URL_API = import.meta.env.VITE_URL_API;
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchDashboardData = async () => {
-            try {
-                const response = await axios.get(`${VITE_URL_API}/admin/dashboard`, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                });
-                setDashboardData(response.data);
-            } catch (error) {
-                setError("Erreur lors de la récupération des données du tableau de bord.");
-            } finally {
-                setLoading(false);
-            }
-        };
+        fetchData();
+    }, [startDate, endDate]);
 
-        fetchDashboardData();
-    }, []);
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const [dashboardResponse, cotisationsResponse, donationsResponse] = await Promise.all([
+                axios.get(`${VITE_URL_API}/admin/dashboard`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                    params: { startDate, endDate }
+                }),
+                axios.get(`${VITE_URL_API}/cotisations`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                    params: { startDate, endDate }
+                }),
+                axios.get(`${VITE_URL_API}/donations`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                    params: { startDate, endDate }
+                })
+            ]);
+            setDashboardData(dashboardResponse.data);
+            setCotisations(cotisationsResponse.data);
+            setDonations(donationsResponse.data);
+        } catch (error) {
+            setError("Erreur lors de la récupération des données.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     if (loading) return <p>Chargement en cours...</p>;
     if (error) return <p>{error}</p>;
+    if (!dashboardData) return <p>Aucune donnée disponible.</p>;
 
     const revenueData = {
-        labels: ['Total Donations', 'Total Cotisations', 'Total Revenue'],
-        datasets: [
-            {
-                label: 'Montants en EUR',
-                data: [
-                    dashboardData.totalDonations,
-                    dashboardData.totalCotisations,
-                    dashboardData.totalRevenue,
-                ],
-                backgroundColor: [
-                    'rgba(54, 162, 235, 0.6)', // Donations - Bleu
-                    'rgba(255, 206, 86, 0.6)', // Cotisations - Jaune
-                    'rgba(75, 192, 192, 0.6)', // Revenue - Vert
-                ],
-                borderColor: [
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                ],
-                borderWidth: 1,
-            },
-        ],
+        labels: ['Donations', 'Cotisations'],
+        datasets: [{
+            data: [dashboardData.totalDonations, dashboardData.totalCotisations],
+            backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)'],
+            borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)'],
+            borderWidth: 1,
+        }]
     };
 
-    const performanceData = {
-        labels: ['Excellent', 'Good', 'Okay', 'Poor'],
+    const revenueOptions = {
+        responsive: true,
+        plugins: {
+            legend: { position: 'top' as const },
+            title: { display: true, text: 'Répartition des Revenus' }
+        }
+    };
+
+    const processDataForChart = () => {
+        const monthsSet = new Set([...cotisations, ...donations].map(item => 
+            new Date(item.date).toLocaleString('default', { month: 'long', year: 'numeric' })
+        ));
+        const months = Array.from(monthsSet).sort((a, b) => 
+            new Date(a).getTime() - new Date(b).getTime()
+        );
+
+        const cotisationsData = months.map(month => 
+            cotisations.filter(c => 
+                new Date(c.date).toLocaleString('default', { month: 'long', year: 'numeric' }) === month
+            ).reduce((sum, c) => sum + c.paiement.amount, 0) / 100
+        );
+
+        const donationsData = months.map(month => 
+            donations.filter(d => 
+                new Date(d.date).toLocaleString('default', { month: 'long', year: 'numeric' }) === month
+            ).reduce((sum, d) => sum + d.paiement.amount, 0) / 100
+        );
+
+        return { months, cotisationsData, donationsData };
+    };
+
+    const { months, cotisationsData, donationsData } = processDataForChart();
+
+    const evolutionData = {
+        labels: months,
         datasets: [
             {
-                label: 'Performance',
-                data: [47, 40, 16, 3],
-                backgroundColor: [
-                    'rgba(75, 192, 192, 0.6)', // Excellent
-                    'rgba(54, 162, 235, 0.6)', // Good
-                    'rgba(255, 206, 86, 0.6)', // Okay
-                    'rgba(255, 99, 132, 0.6)', // Poor
-                ],
-                borderColor: [
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(255, 99, 132, 1)',
-                ],
+                label: 'Cotisations',
+                data: cotisationsData,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 1,
             },
-        ],
+            {
+                label: 'Donations',
+                data: donationsData,
+                backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+            }
+        ]
+    };
+
+    const evolutionOptions = {
+        responsive: true,
+        scales: {
+            x: { stacked: true },
+            y: {
+                stacked: true,
+                title: { display: true, text: 'Montant (EUR)' }
+            }
+        },
+        plugins: {
+            legend: { position: 'top' as const },
+            title: { display: true, text: 'Évolution des Revenus' }
+        }
     };
 
     return (
         <div className="admin-dashboard">
             <h1>Tableau de Bord Admin</h1>
+            
+            <div className="date-range-selector">
+                <label>
+                    Date de début:
+                    <input 
+                        type="date" 
+                        value={startDate} 
+                        onChange={(e) => setStartDate(e.target.value)}
+                    />
+                </label>
+                <label>
+                    Date de fin:
+                    <input 
+                        type="date" 
+                        value={endDate} 
+                        onChange={(e) => setEndDate(e.target.value)}
+                    />
+                </label>
+            </div>
+
             <div className="chart-section">
                 <div className="chart-container">
-                    <h2>Répartition des Revenus</h2>
-                    <Bar data={revenueData} />
+                    <Doughnut data={revenueData} options={revenueOptions} />
                 </div>
                 <div className="chart-container">
-                    <h2>Performance</h2>
-                    <Doughnut data={performanceData} />
+                    <Bar data={evolutionData} options={evolutionOptions} />
                 </div>
             </div>
 
             <div className="details-container">
-                <p>Total des Revenus: {dashboardData.totalRevenue} EUR</p>
-                <p>Total des Donations: {dashboardData.totalDonations} EUR</p>
-                <p>Total des Cotisations: {dashboardData.totalCotisations} EUR</p>
+                <p>Total des Revenus: {dashboardData.totalRevenue.toFixed(2)} EUR</p>
+                <p>Total des Cotisations: {dashboardData.totalCotisations.toFixed(2)} EUR</p>
+                <p>Total des Donations: {dashboardData.totalDonations.toFixed(2)} EUR</p>
                 
                 <div className="actions">
-                    <button onClick={() => navigate('/admin/donations')}>Voir les Dons</button>
                     <button onClick={() => navigate('/admin/cotisations')}>Voir les Cotisations</button>
+                    <button onClick={() => navigate('/admin/donations')}>Voir les Dons</button>
                 </div>
             </div>
         </div>

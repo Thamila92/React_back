@@ -6,25 +6,28 @@ import "./vote.css";
 import { useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
-
+import EditSessionModal from './editSessionModal'; // Assurez-vous que ce composant est créé
+import { useNavigate } from 'react-router-dom';
 
 const VoteSession = () => {
   const [voteSessions, setVoteSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
+  
   const [newVoteData, setNewVoteData] = useState({
     titre: "",
     description: "",
     modalite: "",
-    type: "classique", // Par défaut "classique"
+    type: "classique",
     participants: [],
-    options: [], // Options pour les sondages
+    options: [],
     dateDebut: "",
     dateFin: ""
   });
-  const [users, setUsers] = useState([]); // Liste des utilisateurs récupérée du backend
+  const [users, setUsers] = useState([]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [sessionToEdit, setSessionToEdit] = useState(null);
   const VITE_URL_API = import.meta.env.VITE_URL_API;
 
-  // Récupérer l'eventId des paramètres de l'URL
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const eventId = searchParams.get('eventId');
@@ -43,7 +46,9 @@ const VoteSession = () => {
       try {
         const response = await axios.get(`${VITE_URL_API}/listUsers`);
         const salarierUsers = response.data.users.filter(user => user.status.type === 'SALARIER');
-        setUsers(salarierUsers);
+        const Users = response.data.users;
+
+        setUsers(Users);
       } catch (error) {
         toast.error("Failed to fetch users.");
       }
@@ -69,7 +74,6 @@ const VoteSession = () => {
     const formattedDateDebut = new Date(dateDebut).toISOString();
     const formattedDateFin = new Date(dateFin).toISOString();
 
-    // Construire les données à envoyer
     const dataToSend = {
       titre,
       description,
@@ -80,14 +84,12 @@ const VoteSession = () => {
       dateFin: formattedDateFin,
     };
 
-    // Ajouter "options" uniquement si le type est "sondage"
     if (type === 'sondage') {
       dataToSend.options = options;
     }
 
-    // Ajouter l'eventId si présent
     if (eventId) {
-      dataToSend.evenementId = Number(eventId); // Assurer que c'est un nombre
+      dataToSend.evenementId = Number(eventId);
     }
 
     try {
@@ -111,9 +113,7 @@ const VoteSession = () => {
       toast.error("Failed to create vote session.");
     }
   };
- 
 
-  
   const handleInputChange = (e) => {
     setNewVoteData({ ...newVoteData, [e.target.name]: e.target.value });
   };
@@ -137,24 +137,64 @@ const VoteSession = () => {
     const newOptions = newVoteData.options.filter((_, i) => i !== index);
     setNewVoteData({ ...newVoteData, options: newOptions });
   };
+  const handleDeleteClick = async (session) => {
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer la session "${session.titre}" ?`)) {
+      try {
+        await axios.delete(`${VITE_URL_API}/vote-sessions/${session.id}`);
+        setVoteSessions(voteSessions.filter(vs => vs.id !== session.id));
+        toast.success("Vote session deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting vote session:", error);
+        toast.error("Failed to delete vote session.");
+      }
+    }
+  };
+  const handleEditClick = (session) => {
+    setSessionToEdit(session);
+    setIsEditModalOpen(true);
+  };
 
+  const handleSaveEdit = async (editedSession) => {
+    try {
+      const response = await axios.put(`${VITE_URL_API}/vote-sessions/${editedSession.id}`, editedSession);
+      const updatedSessions = voteSessions.map(session => 
+        session.id === editedSession.id ? response.data : session
+      );
+      setVoteSessions(updatedSessions);
+      toast.success("Vote session updated successfully!");
+    } catch (error) {
+      console.error("Error updating vote session:", error);
+      toast.error("Failed to update vote session.");
+    }
+  };
+  const handleNavigateToVote = () => {
+    navigate('/vote'); // Navigate to /vote
+  };
   return (
     <div className="vote-session-content">
       <ToastContainer />
+      <div className="navigate-button-container">
+        <button onClick={handleNavigateToVote} className="navigate-button">
+          Passer un vote
+        </button>
+      </div>
       <div className="vote-session-body">
         <div className="vote-session-left">
           <h2>Vote Sessions</h2>
           <div className="session-list">
             {voteSessions.map((session) => (
-              <div
-                className="session-item"
-                key={session.id}
-                onClick={() => setSelectedSession(session)}
-              >
-                {session.titre}
+              <div className="session-item" key={session.id}>
+                <span onClick={() => setSelectedSession(session)}>{session.titre}</span>
+              
+                  <FontAwesomeIcon icon={faEdit} onClick={(e)  => handleEditClick(session)}
+                  className="edit-icon"
+                />
+              <FontAwesomeIcon icon={faTrash} onClick={() => handleDeleteClick(session)} className="delete-icon" />
+
               </div>
             ))}
           </div>
+ 
         </div>
 
         <div className="create-session">
@@ -210,7 +250,6 @@ const VoteSession = () => {
             </div>
           )}
 
-          {/* Sélection multiple pour les participants */}
           <select
             multiple
             name="participants"
@@ -262,6 +301,13 @@ const VoteSession = () => {
           )}
         </div>
       )}
+
+      <EditSessionModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        session={sessionToEdit}
+        onSave={handleSaveEdit}
+      />
     </div>
   );
 };
