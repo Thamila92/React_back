@@ -6,12 +6,13 @@ import "./vote.css";
 import { useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
-import EditSessionModal from './editSessionModal'; // Assurez-vous que ce composant est créé
+import EditSessionModal from './editSessionModal'; 
 import { useNavigate } from 'react-router-dom';
 
 const VoteSession = () => {
   const [voteSessions, setVoteSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // Indicateur de chargement
   
   const [newVoteData, setNewVoteData] = useState({
     titre: "",
@@ -34,23 +35,28 @@ const VoteSession = () => {
 
   useEffect(() => {
     const fetchSessions = async () => {
+      setIsLoading(true); // Commence le chargement
       try {
         const response = await axios.get(`${VITE_URL_API}/vote-sessions`);
         setVoteSessions(response.data);
       } catch (error) {
         toast.error("Failed to fetch vote sessions.");
+      } finally {
+        setIsLoading(false); // Termine le chargement
       }
     };
 
     const fetchUsers = async () => {
+      setIsLoading(true); // Commence le chargement
       try {
         const response = await axios.get(`${VITE_URL_API}/listUsers`);
         const salarierUsers = response.data.users.filter(user => user.status.type === 'SALARIER');
         const Users = response.data.users;
-
         setUsers(Users);
       } catch (error) {
         toast.error("Failed to fetch users.");
+      } finally {
+        setIsLoading(false); // Termine le chargement
       }
     };
 
@@ -60,6 +66,19 @@ const VoteSession = () => {
 
   const handleCreateVoteSession = async () => {
     const { titre, description, modalite, type, participants, options, dateDebut, dateFin } = newVoteData;
+
+
+    if (new Date(dateDebut) < new Date() || new Date(dateFin) < new Date()) {
+      toast.error("Les dates de début et de fin doivent être après aujourd'hui.");
+      return;
+    }
+ 
+
+    if (new Date(dateFin) <= new Date(dateDebut)) {
+      toast.error("La date de fin doit être après la date de début.");
+      return;
+    }
+
 
     if (!titre || !description || !modalite || !type || !participants.length || !dateDebut || !dateFin) {
       toast.error("Please fill all fields.");
@@ -92,6 +111,7 @@ const VoteSession = () => {
       dataToSend.evenementId = Number(eventId);
     }
 
+    setIsLoading(true); // Indicate que l'action est en cours
     try {
       const response = await axios.post(`${VITE_URL_API}/vote-sessions`, dataToSend);
       console.log("Réponse de l'API :", response.data);
@@ -111,6 +131,8 @@ const VoteSession = () => {
     } catch (error) {
       console.error("Erreur lors de la création de la session de vote :", error);
       toast.error("Failed to create vote session.");
+    } finally {
+      setIsLoading(false); // Termine le chargement
     }
   };
 
@@ -137,8 +159,10 @@ const VoteSession = () => {
     const newOptions = newVoteData.options.filter((_, i) => i !== index);
     setNewVoteData({ ...newVoteData, options: newOptions });
   };
+
   const handleDeleteClick = async (session) => {
     if (window.confirm(`Êtes-vous sûr de vouloir supprimer la session "${session.titre}" ?`)) {
+      setIsLoading(true); // Commence le chargement
       try {
         await axios.delete(`${VITE_URL_API}/vote-sessions/${session.id}`);
         setVoteSessions(voteSessions.filter(vs => vs.id !== session.id));
@@ -146,15 +170,19 @@ const VoteSession = () => {
       } catch (error) {
         console.error("Error deleting vote session:", error);
         toast.error("Failed to delete vote session.");
+      } finally {
+        setIsLoading(false); // Termine le chargement
       }
     }
   };
+
   const handleEditClick = (session) => {
     setSessionToEdit(session);
     setIsEditModalOpen(true);
   };
 
   const handleSaveEdit = async (editedSession) => {
+    setIsLoading(true); // Commence le chargement
     try {
       const response = await axios.put(`${VITE_URL_API}/vote-sessions/${editedSession.id}`, editedSession);
       const updatedSessions = voteSessions.map(session => 
@@ -165,14 +193,19 @@ const VoteSession = () => {
     } catch (error) {
       console.error("Error updating vote session:", error);
       toast.error("Failed to update vote session.");
+    } finally {
+      setIsLoading(false); // Termine le chargement
     }
   };
+
   const handleNavigateToVote = () => {
     navigate('/vote'); // Navigate to /vote
   };
+
   return (
     <div className="vote-session-content">
       <ToastContainer />
+      {isLoading && <div className="loading">Chargement...</div>} {/* Indicateur de chargement */}
       <div className="navigate-button-container">
         <button onClick={handleNavigateToVote} className="navigate-button">
           Passer un vote
@@ -185,16 +218,11 @@ const VoteSession = () => {
             {voteSessions.map((session) => (
               <div className="session-item" key={session.id}>
                 <span onClick={() => setSelectedSession(session)}>{session.titre}</span>
-              
-                  <FontAwesomeIcon icon={faEdit} onClick={(e)  => handleEditClick(session)}
-                  className="edit-icon"
-                />
-              <FontAwesomeIcon icon={faTrash} onClick={() => handleDeleteClick(session)} className="delete-icon" />
-
+                <FontAwesomeIcon icon={faEdit} onClick={() => handleEditClick(session)} className="edit-icon" />
+                <FontAwesomeIcon icon={faTrash} onClick={() => handleDeleteClick(session)} className="delete-icon" />
               </div>
             ))}
           </div>
- 
         </div>
 
         <div className="create-session">
@@ -273,7 +301,9 @@ const VoteSession = () => {
             value={newVoteData.dateFin}
             onChange={handleInputChange}
           />
-          <button onClick={handleCreateVoteSession}>Create Session</button>
+          <button onClick={handleCreateVoteSession} disabled={isLoading}>
+            {isLoading ? 'Création en cours...' : 'Create Session'}
+          </button>
         </div>
       </div>
 
