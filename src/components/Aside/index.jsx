@@ -29,7 +29,7 @@ const Aside = () => {
       )}
  
 
-      <NavLink to="/document" className={({ isActive }) => isActive ? "active" : ""}>
+      <NavLink to="/folder" className={({ isActive }) => isActive ? "active" : ""}>
         <div className="aside-center"><img src="image/logo-doc.png" alt="doc" /></div>
       </NavLink>
 

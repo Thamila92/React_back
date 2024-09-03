@@ -10,6 +10,10 @@ interface Folder {
   type: 'folder';
   documents?: (Folder | Document)[];
   children?: Folder[];
+  parentFolder?: {
+    id: number;
+    name: string;
+  };
 }
 
 interface Document {
@@ -35,6 +39,12 @@ const FolderExplorer: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [showDocumentDetails, setShowDocumentDetails] = useState<boolean>(false);
   const navigate = useNavigate();
+  const [downloadUrl, setDownloadUrl] = useState("");
+
+  const [editMode, setEditMode] = useState<boolean>(false);
+  const [editableTitle, setEditableTitle] = useState<string>('');
+  const [editableDescription, setEditableDescription] = useState<string>('');
+
   const VITE_URL_API = import.meta.env.VITE_URL_API;
 
   useEffect(() => {
@@ -46,37 +56,68 @@ const FolderExplorer: React.FC = () => {
     return item.type === 'folder';
   }
 
+  const handleDoubleClick = () => {
+    if (selectedDocument) {
+      setEditableTitle(selectedDocument.title);
+      setEditableDescription(selectedDocument.description || '');
+      setEditMode(true);
+    }
+  };
+
+  const handleSave = async (docId: number) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate("/admin");
+      return;
+    }
+
+    try {
+      const response = await axios.patch(`${VITE_URL_API}/document/${docId}`, {
+        title: editableTitle,
+        description: editableDescription
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+
+      if (response.status === 200) {
+        toast.success("Document updated successfully");
+        setEditMode(false);
+        fetchDocuments(); // Actualiser la liste des documents
+      }
+    } catch (error) {
+      toast.error("Failed to update document");
+    }
+  };
+
   const fetchFolders = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/admin');
       return;
     }
-  
+
     try {
       const response = await axios.get<Folder[]>(`${VITE_URL_API}/folders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-  
+
       const foldersWithTypes: Folder[] = response.data.map(folder => ({
         ...folder,
         type: 'folder',
-        documents: folder.documents?.map(doc => {
-          if (isFolder(doc)) {
-            return { ...doc, type: 'folder' } as Folder;
-          } else {
-            return { ...doc, type: 'file' } as Document;
-          }
-        }),
+        documents: folder.documents?.map(doc => ({
+          ...doc,
+          type: 'file'
+        })) as Document[],
         children: folder.children?.map(child => ({ ...child, type: 'folder' })) || []
       }));
-  
+
       setFolders(foldersWithTypes);
     } catch (error) {
       toast.error('Erreur lors du chargement des dossiers');
     }
   };
-
   const fetchDocuments = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -85,56 +126,57 @@ const FolderExplorer: React.FC = () => {
     }
   
     try {
-      const response = await axios.get<Document[]>(`${VITE_URL_API}/documents`, {
+      const response = await axios.get(`${VITE_URL_API}/documents`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
-      const rootDocuments = response.data.filter(doc => !doc.parentFolderId);   
-      
-      const documentsWithTypes: Document[] = rootDocuments.map(doc => ({
-        ...doc,
-        type: 'file',
-      }));
-      
-      setDocuments(documentsWithTypes);
+  
+      const rootDocuments: Document[] = response.data
+        .filter((doc: any) => !doc.folder)  // Filtrer les documents sans dossier parent
+        .map((doc: any) => ({
+          ...doc,
+          type: 'file' as const,  // Assigner explicitement le type "file"
+        }));
+  
+      setDocuments(rootDocuments);
     } catch (error) {
       toast.error('Erreur lors du chargement des fichiers');
     }
-};
-const handleFolderClick = async (folder: Folder) => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/admin');
-      return;
-    }
+  };
+  
+  
+  
 
-    // Récupérer le contenu du dossier sélectionné
-    const response = await axios.get<Folder>(`${VITE_URL_API}/folder/${folder.id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  const handleFolderClick = async (folder: Folder) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/admin');
+        return;
+      }
 
-    const folderWithTypes: Folder = {
-      ...response.data,
-      type: 'folder',
-      documents: response.data.documents?.map(doc => ({
-        ...doc,
-        type: 'file',
-      })) as Document[],
-      children: response.data.children?.map(child => ({
-        ...child,
+      const response = await axios.get<Folder>(`${VITE_URL_API}/folder/${folder.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const folderWithTypes: Folder = {
+        ...response.data,
         type: 'folder',
-      })) || [],
-    };
+        documents: response.data.documents?.map(doc => ({
+          ...doc,
+          type: 'file',
+        })) as Document[],
+        children: response.data.children?.map(child => ({
+          ...child,
+          type: 'folder',
+        })) || [],
+      };
 
-    setCurrentFolder(folderWithTypes);
-    setBreadcrumb((prev) => [...prev, folder]);
-  } catch (error) {
-    toast.error('Erreur lors de l\'ouverture du dossier');
-  }
-};
-
-
+      setCurrentFolder(folderWithTypes);
+      setBreadcrumb(prev => [...prev, folder]);
+    } catch (error) {
+      toast.error('Erreur lors de l\'ouverture du dossier');
+    }
+  };
 
   const handleBreadcrumbClick = (index: number) => {
     const newBreadcrumb = breadcrumb.slice(0, index + 1);
@@ -144,20 +186,24 @@ const handleFolderClick = async (folder: Folder) => {
     setShowDocumentDetails(false);
   };
 
-  const handleBackClick = () => {
+  const handleBackClick = async () => {
     if (breadcrumb.length > 1) {
       breadcrumb.pop();
       const parentFolder = breadcrumb[breadcrumb.length - 1];
       setCurrentFolder(parentFolder);
       setSelectedDocument(null);
       setShowDocumentDetails(false);
+      handleFolderClick(parentFolder);  // Recharger les éléments du dossier parent
     } else {
       setCurrentFolder(null);
       setBreadcrumb([]);
       setSelectedDocument(null);
       setShowDocumentDetails(false);
+      await fetchFolders();  // Recharger les éléments racine
+      await fetchDocuments();  // Recharger les documents racine
     }
   };
+  
 
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,14 +221,16 @@ const handleFolderClick = async (folder: Folder) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       if (currentFolder) {
         setCurrentFolder({
           ...currentFolder,
           children: [...(currentFolder.children || []), response.data],
         });
       } else {
-        setFolders([...folders, response.data]);
+        setFolders(prev => [...prev, response.data]);
       }
+
       setNewFolderName('');
       setShowNewFolderForm(false);
       toast.success('Dossier créé avec succès');
@@ -214,7 +262,7 @@ const handleFolderClick = async (folder: Folder) => {
       if (currentFolder) {
         setCurrentFolder({
           ...currentFolder,
-          children: currentFolder.children?.map(child => 
+          children: currentFolder.children?.map(child =>
             child.id === folderId ? response.data.folder : child
           ),
         });
@@ -272,7 +320,7 @@ const handleFolderClick = async (folder: Folder) => {
 
   const handleDrop = async (e: React.DragEvent, targetFolder: Folder) => {
     e.preventDefault();
-    
+
     try {
       const itemData = e.dataTransfer.getData('item');
       const item = JSON.parse(itemData) as Item;
@@ -285,54 +333,186 @@ const handleFolderClick = async (folder: Folder) => {
         toast.success('Fichier déplacé avec succès');
         setDocuments(prevDocuments => prevDocuments.filter(doc => doc.id !== item.id));
       }
-      
+
       handleFolderClick(targetFolder);
     } catch (error) {
       toast.error('Erreur lors du déplacement de l\'élément');
     }
   };
 
+  const handleRemoveFromParent = async (folderId: number) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate("/admin");
+      return;
+    }
+
+    try {
+      const folderResponse = await axios.get<Folder>(`${VITE_URL_API}/folder/${folderId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const folder = folderResponse.data;
+
+      if (!folder.parentFolder) {
+        toast.error("Le dossier n'a pas de parent à retirer.");
+        return;
+      }
+
+      const removeResponse = await axios.post(`${VITE_URL_API}/folders/${folderId}/remove-from-parent`, {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (removeResponse.status === 200) {
+        toast.success("Dossier retiré du parent avec succès");
+
+        const parentFolderResponse = await axios.get<Folder>(`${VITE_URL_API}/folder/${folder.parentFolder.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        const parentFolder = parentFolderResponse.data;
+        const grandParentFolderId = parentFolder.parentFolder?.id;
+
+        if (grandParentFolderId) {
+          const addToGrandParentResponse = await axios.post(`${VITE_URL_API}/folders/${grandParentFolderId}/add-folder/${folderId}`, {}, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (addToGrandParentResponse.status === 200) {
+            toast.success("Dossier déplacé sous le grand-parent avec succès");
+          } else {
+            toast.error("Erreur lors du déplacement du dossier sous le grand-parent");
+          }
+        }
+      } else {
+        toast.error("Erreur lors du retrait du dossier du parent");
+      }
+
+      fetchFolders();
+      if (currentFolder && currentFolder.id === folderId) {
+        setCurrentFolder(null);
+        setBreadcrumb([]);
+      } else if (currentFolder) {
+        handleFolderClick(currentFolder);
+      }
+    } catch (error) {
+      console.error('Erreur lors du retrait du dossier du parent:', error);
+      toast.error('Erreur lors du retrait du dossier du parent');
+    }
+  };
+
+  const handleRemoveFileFromFolder = async (fileId: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/admin');
+        return;
+      }
+
+      const documentResponse = await axios.get(`${VITE_URL_API}/document/${fileId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const document = documentResponse.data.document;
+      const currentFolderId = document.folder?.id;
+
+      if (!currentFolderId) {
+        toast.error('Le document n\'est pas dans un dossier.');
+        return;
+      }
+
+      const folderResponse = await axios.get(`${VITE_URL_API}/folder/${currentFolderId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const currentFolder = folderResponse.data;
+      const parentFolderId = currentFolder.parentFolder?.id;
+
+      await axios.post(`${VITE_URL_API}/files/${fileId}/remove-from-folder`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      toast.success('Fichier retiré du dossier avec succès');
+
+      if (parentFolderId) {
+        await axios.post(`${VITE_URL_API}/folders/${parentFolderId}/add-file`, { fileId }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        toast.success('Fichier déplacé dans le dossier parent avec succès');
+      }
+
+      if (currentFolder) {
+        handleFolderClick(currentFolder);
+      } else {
+        fetchDocuments();
+      }
+    } catch (error) {
+      console.error('Erreur lors du retrait ou du déplacement du fichier :', error);
+      toast.error('Erreur lors du retrait ou du déplacement du fichier');
+    }
+  };
+
   const renderItems = (items: Item[]) => {
     return items.map((item) => (
-      <div 
-        key={item.id} 
-        className="item" 
-        draggable 
+      <div
+        key={(isFolder(item) ? 'folder-' : 'file-') + item.id}
+        className="item"
+        draggable
         onDragStart={(e) => handleDragStart(e, item)}
-        onDrop={(e) => handleDrop(e, item as Folder)} 
+        onDrop={(e) => handleDrop(e, item as Folder)}
         onDragOver={(e) => e.preventDefault()}
         onClick={() => {
           if (isFolder(item)) {
-            handleFolderClick(item);  // Ouvre le dossier
+            handleFolderClick(item);
           }
         }}
       >
         <div className="item-info">
           <span>
-            {item.type === 'folder' ? '📁' : '📄'} 
+            {item.type === 'folder' ? '📁' : '📄'}
             {isFolder(item) ? item.name : item.title}
           </span>
         </div>
-  
+
         {isFolder(item) ? (
           <div className="item-actions">
             <button onClick={(e) => { e.stopPropagation(); handleDeleteFolder(item.id); }}>Supprimer</button>
             <button onClick={(e) => { e.stopPropagation(); handleRenameFolder(item.id, prompt('Nouveau nom :') || item.name); }}>Renommer</button>
+            {currentFolder && (
+              <button onClick={(e) => { e.stopPropagation(); handleRemoveFromParent(item.id); }}>Retirer du parent</button>
+            )}
           </div>
         ) : (
           <div className="item-actions">
             <button onClick={(e) => { e.stopPropagation(); handleViewDocument(item); }}>Voir Plus</button>
+            {currentFolder && (
+              <button onClick={(e) => { e.stopPropagation(); handleRemoveFileFromFolder(item.id); }}>Retirer du dossier</button>
+            )}
           </div>
         )}
       </div>
     ));
   };
-  
-
 
   const renderDocumentDetails = () => {
     if (!selectedDocument || !showDocumentDetails) return null;
-  
+
     return (
       <div className="document-details-container">
         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -347,17 +527,71 @@ const handleFolderClick = async (folder: Folder) => {
           <tbody>
             <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
               <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                {selectedDocument.title}
+                {editMode ? (
+                  <input
+                    type="text"
+                    value={editableTitle}
+                    onChange={(e) => setEditableTitle(e.target.value)}
+                    className="form-input"
+                  />
+                ) : (
+                  <span onDoubleClick={handleDoubleClick}>
+                    {selectedDocument.title}
+                  </span>
+                )}
               </td>
               <td className="px-6 py-4">
                 {new Date(selectedDocument.createdAt).toLocaleDateString()}
               </td>
               <td className="px-6 py-4">
-                {selectedDocument.description || "No description provided"}
+                {editMode ? (
+                  <input
+                    type="text"
+                    value={editableDescription}
+                    onChange={(e) => setEditableDescription(e.target.value)}
+                    className="form-input"
+                  />
+                ) : (
+                  <span onDoubleClick={handleDoubleClick}>
+                    {selectedDocument.description || "No description provided"}
+                  </span>
+                )}
               </td>
               <td className="px-6 py-4">
-                <button className="btn btn-primary" onClick={() => handleDownloadDocument(selectedDocument.id)}>Download</button>
-                <button className="btn btn-danger" style={{ marginLeft: '10px' }} onClick={() => handleDeleteDocument(selectedDocument.id)}>Delete</button>
+                {editMode ? (
+                  <>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => handleSave(selectedDocument.id)}
+                    >
+                      Save
+                    </button>
+                    <button
+                      className="btn btn-secondary"
+                      style={{ marginLeft: '10px' }}
+                      onClick={handleCancelEdit}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => handleViewDocumentContent(selectedDocument.id)}
+                    >
+                      View
+                    </button>
+                    <button className="btn btn-secondary" style={{ marginLeft: '10px' }} onClick={() => window.open(downloadUrl, '_blank')}>Download</button>
+                    <button
+                      className="btn btn-danger"
+                      style={{ marginLeft: "10px" }}
+                      onClick={() => handleDeleteDocument(selectedDocument.id)}
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
               </td>
             </tr>
           </tbody>
@@ -365,7 +599,38 @@ const handleFolderClick = async (folder: Folder) => {
       </div>
     );
   };
-  
+
+  const handleViewDocumentContent = async (fileId: number) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate("/admin");
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${VITE_URL_API}/document/${fileId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.data && response.data.links && response.data.links.webViewLink) {
+        window.open(response.data.links.webViewLink, '_blank');
+        setDownloadUrl(response.data.links.webContentLink);
+      } else {
+        setDownloadUrl("");
+        toast.error("No preview available for this document.");
+      }
+    } catch (error) {
+      toast.error('Erreur lors de l\'ouverture du document');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditMode(false);
+    setEditableTitle(selectedDocument?.title || '');
+    setEditableDescription(selectedDocument?.description || '');
+  };
 
   const handleDeleteDocument = async (fileId: number) => {
     try {
@@ -377,27 +642,6 @@ const handleFolderClick = async (folder: Folder) => {
       }
     } catch (error) {
       toast.error('Erreur lors de la suppression du fichier');
-    }
-  };
-
-  const handleDownloadDocument = async (fileId: number) => {
-    try {
-      const response = await axios.get(`${VITE_URL_API}/document/${fileId}/download`, {
-        responseType: 'blob',
-      });
-
-      const blob = new Blob([response.data], { type: response.headers['content-type'] });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', response.headers['content-disposition'].split('filename=')[1]);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      toast.success('Fichier téléchargé avec succès');
-    } catch (error) {
-      toast.error('Erreur lors du téléchargement du fichier');
     }
   };
 

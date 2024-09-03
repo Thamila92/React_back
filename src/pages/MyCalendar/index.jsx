@@ -150,7 +150,7 @@ const MyCalendar = () => {
   return (
     <div className="home-content">
       <div className="today">
-        <p className="today-text">{today}</p>
+      <p className="today-text" style={{ color: 'white' }}>{today}</p>
       </div>
       <Calendar
         localizer={localizer}
