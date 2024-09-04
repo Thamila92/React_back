@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { toast } from "react-toastify";
 import { toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+
 
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
