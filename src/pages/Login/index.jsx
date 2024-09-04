@@ -150,6 +150,9 @@ const LogIn = () => {
           <div className="form-footer2">
             <Link to="/signUp">Create a new account</Link>
           </div>
+          <div className="form-footer2">
+            <Link to="/Admin/SignUp">Create a new account Admin</Link>
+          </div>
         </form>
       </div>
     </div>
