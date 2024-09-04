@@ -44,6 +44,8 @@ const Document = () => {
     fetchDocuments();
   }, []);
 
+
+
   useEffect(() => {
     let token = localStorage.getItem('token');
     if (!token) {
@@ -147,13 +149,23 @@ const Document = () => {
     }
   };
   
+  const handleDoubleClick = () => {
+    if (selectedDocument) {
+      setEditableTitle(selectedDocument.title);
+      setEditableDescription(selectedDocument.description || '');
+      setEditMode(true);
+    }
+  };
 
+  
   // Fonction pour entrer en mode édition
   const handleEdit = (doc) => {
     setEditMode(doc.id);
     setEditableTitle(doc.title);
     setEditableDescription(doc.description);
   };
+
+ 
 
   // Fonction pour sauvegarder les modifications (via PATCH)
   const handleSave = async (docId) => {
