@@ -4,6 +4,9 @@ import logo from "/image/logo.png";
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { toast } from "react-toastify";
+import { toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
 const LogIn = () => {
@@ -46,7 +49,7 @@ const LogIn = () => {
     e.preventDefault();
     let data = { email, password };
     data = JSON.stringify(data);
-
+  
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
@@ -56,24 +59,24 @@ const LogIn = () => {
       },
       data: data
     };
-
+  
     axios.request(config)
       .then((response) => {
         if (response.status === 200) {
           const userData = response.data.user;
           const token = response.data.token;
-
+  
           // Stocker les données dans localStorage
           localStorage.setItem('token', token);
           localStorage.setItem('userId', userData.id);
           localStorage.setItem('email', userData.email);
           localStorage.setItem('name', userData.name);
           localStorage.setItem('statusType', userData.status.type); // Stocker le type de statut (ADMIN, SALARIER, etc.)
-
+  
           setEmail("");
           setPassword("");
           toast.success("Connected");
-
+  
           // Redirection en fonction du statut de l'utilisateur
           setTimeout(() => {
             if (userData.status.type === 'ADMIN') {
@@ -85,9 +88,22 @@ const LogIn = () => {
         }
       })
       .catch((error) => {
-        toast.error("User not found");
+        if (error.response) {
+          // If the error response is from the server (like 400 or 401)
+          if (error.response.status === 401) {
+            toast.error("Incorrect email or password");
+          } else if (error.response.status === 404) {
+            toast.error("User not found");
+          } else {
+            toast.error("An error occurred. Please try again.");
+          }
+        } else {
+          // If there is a network error or no response
+          toast.error("Unable to connect to the server. Please check your network.");
+        }
       });
   };
+  
 
   return (
     <div className="container signin row">
