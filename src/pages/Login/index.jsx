@@ -65,7 +65,11 @@ const LogIn = () => {
         if (response.status === 200) {
           const userData = response.data.user;
           const token = response.data.token;
-  
+      // Vérifier si l'utilisateur est banni
+      if (userData.isBanned) {
+        toast.error("Votre compte a été désactivé. Veuillez contacter l'administration.");
+        return;  // Stop the process here if the user is banned
+      }
           // Stocker les données dans localStorage
           localStorage.setItem('token', token);
           localStorage.setItem('userId', userData.id);
