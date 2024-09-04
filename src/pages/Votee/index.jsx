@@ -23,21 +23,23 @@ const VotingSystem = () => {
         // Filtrer les sessions où l'utilisateur actuel est un participant
         const filteredSessions = allSessions.filter(session => 
           session.participants.some(participant => 
-            participant.id === userId && 
-            (participant.status.type === 'SALARIER' || participant.status.type === 'ADMIN')
+            participant.id === userId 
+             
+             
           )
         );
     
         if (filteredSessions.length === 0) {
-          toast.info("Vous n'avez pas encore de session de vote.");
+          window.alert("Vous n'avez pas encore de session de vote.");
         }
     
         setVoteSessions(filteredSessions);
       } catch (error) {
-        toast.error("Failed to fetch vote sessions.");
+        window.alert("Failed to fetch vote sessions.");
         console.error("Error fetching vote sessions:", error);
       }
     };
+    
     
 
     fetchSessions();
@@ -55,17 +57,17 @@ const VotingSystem = () => {
       });
       if (response.data.hasVoted) {
         setHasVoted(true);
-        toast.info("You have already voted in this session.");
+        window.alert("You have already voted in this session.");
         fetchResults(session.id);
       }
     } catch (error) {
-      toast.error("Failed to check if user has voted.");
+      window.alert("Failed to check if user has voted.");
     }
   };
 
   const handleVoteSubmit = async () => {
     if (!voteChoice) {
-      toast.error("Please select a choice.");
+      window.alert("Please select a choice.");
       return;
     }
   
@@ -76,12 +78,12 @@ const VotingSystem = () => {
   
       const response = await axios.post(`${VITE_URL_API}/votes`, requestData);
       if (response.status === 201) {
-        toast.success("Vote submitted successfully!");
+        window.alert("Vote submitted successfully!");  
         fetchResults(selectedSession.id);
-        setHasVoted(true); // Indique que l'utilisateur a voté
+        setHasVoted(true);  
       }
     } catch (error) {
-      toast.error("Failed to submit vote.");
+      window.alert("Failed to submit vote.");
       console.error("Error during vote submission:", error.response ? error.response.data : error.message);
     }
   };
@@ -91,15 +93,15 @@ const VotingSystem = () => {
       const response = await axios.get(`${VITE_URL_API}/vote-results/${sessionId}`);
       setResultats(response.data);
     } catch (error) {
-      toast.error("Failed to fetch vote results.");
+      window.alert("Failed to fetch vote results.");
       console.error("Error fetching vote results:", error);
     }
   };
 
   return (
     <div className="vote-session-content">
-      <ToastContainer />
-      <div className="vote-session-body">
+       <div className="vote-session-body">
+        
         <div className="vote-session-left">
           <h2>Vote Sessions</h2>
           <div className="session-list">

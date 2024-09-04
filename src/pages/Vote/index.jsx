@@ -28,10 +28,10 @@ const VoteSession = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [sessionToEdit, setSessionToEdit] = useState(null);
   const VITE_URL_API = import.meta.env.VITE_URL_API;
-
-  const location = useLocation();
+   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const eventId = searchParams.get('eventId');
+  let navigate = useNavigate();
 
   useEffect(() => {
     const fetchSessions = async () => {
@@ -182,7 +182,7 @@ const VoteSession = () => {
   };
 
   const handleSaveEdit = async (editedSession) => {
-    setIsLoading(true); // Commence le chargement
+    setIsLoading(true);  
     try {
       const response = await axios.put(`${VITE_URL_API}/vote-sessions/${editedSession.id}`, editedSession);
       const updatedSessions = voteSessions.map(session => 
@@ -336,7 +336,7 @@ const VoteSession = () => {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         session={sessionToEdit}
-        onSave={handleSaveEdit}
+        //onSave={handleSaveEdit}
       />
     </div>
   );

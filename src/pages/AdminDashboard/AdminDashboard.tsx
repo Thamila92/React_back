@@ -219,10 +219,7 @@ const AdminDashboard: React.FC = () => {
                 <p>Total des Cotisations: {dashboardData.totalCotisations.toFixed(2)} EUR</p>
                 <p>Total des Donations: {dashboardData.totalDonations.toFixed(2)} EUR</p>
                 
-                <div className="actions">
-                    <button onClick={() => navigate('/admin/cotisations')}>Voir les Cotisations</button>
-                    <button onClick={() => navigate('/admin/donations')}>Voir les Dons</button>
-                </div>
+                
             </div>
         </div>
     );
