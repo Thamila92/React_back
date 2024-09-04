@@ -384,9 +384,7 @@ const Home = () => {
             )}
 
             <hr />
-            {!joined && (
-              <button onClick={() => setJoined(true)}>Join Companion Room</button>
-            )}
+        
             {joined && <VideoRoom virtualLink={eventData.virtualLink} />}
             <br />
             <br />
